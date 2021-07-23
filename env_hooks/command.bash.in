@@ -1,0 +1,302 @@
+#!/bin/bash
+
+export TUDA_WSS_COMPLETIONS=""
+export TUDA_WSS_BASE_SCRIPTS=@CMAKE_INSTALL_PREFIX@/share/@PROJECT_NAME@/scripts
+
+add_tuda_wss_completion() {
+  if [ $# -ne 2 ]; then
+    echo "ERROR: add_tuda_wss_completion requires exactly two arguments: command completion_function"
+    echo "Passed were $# arguments: $*"
+    echo "Example: add_tuda_wss_completion command _command_complete"
+    return
+  fi
+  if [ -z "${TUDA_WSS_SCRIPTS}" ]; then
+    TUDA_WSS_COMPLETIONS="$1 $2"
+  else
+    TUDA_WSS_COMPLETIONS="${TUDA_WSS_COMPLETIONS}\n$1 $2"
+  fi
+}
+
+
+tuda_wss() {
+  source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
+
+  local command
+  command="$1"
+  shift
+
+  if [[ "$command" == "help" || "$command" == "--help" || -z "$command" ]]; then
+    _tuda_wss_help
+    return 0
+  fi
+
+  for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
+    if [ -x "$dir/${command}.sh" ]; then
+      $dir/${command}.sh "$@"
+      return $?
+    elif [ -x "$dir/${command}.bash" ]; then
+      $dir/${command}.bash "$@"
+      return $?
+    elif [ -x "$dir/${command}.py" ]; then
+      $dir/${command}.py "$@"
+      return $?
+    elif [ -r "$dir/${command}.sh" ]; then
+      source $dir/${command}.sh "$@"
+      return 0
+    elif [ -r "$dir/${command}.bash" ]; then
+      source $dir/${command}.bash "$@"
+      return 0
+    else
+      # check if current scope is remote pc script
+      for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
+        if [[ "$script_name" == "$command" ]]; then
+          local pc
+          pc=${script_name}_remote_pc
+
+          local OLD_IFS
+          OLD_IFS=$IFS
+          IFS=$TUDA_WSS_SEP_SYM
+
+          local args
+          args=(${!pc})
+          local hostname
+          hostname=${args[1]}
+          local screen_name
+          screen_name=${args[2]}
+          local launch_command
+          launch_command=${args[3]}
+
+          IFS=$OLD_IFS
+
+          remote_pc "${script_name}" "${hostname}" "${screen_name}" "${launch_command}" "$@"
+          return 0
+        fi
+      done
+    fi
+  done
+
+  echo_error "Unknown workspace script command: $command"
+  _tuda_wss_help
+  return 1
+}
+
+_tuda_wss_commands_impl() {
+  echo help
+
+  for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
+    if [ -d "$dir" ]; then
+      while IFS= read -r -d '' file; do
+        local command
+        command=${file#$dir/}
+        if [[ ${command} == _* ]]; then
+          continue
+        fi
+        if [[ ${command} == *.py && ! -x "$file" ]]; then
+          continue
+        fi
+        command=${command%.sh}
+        command=${command%.bash}
+        command=${command%.py}
+        if [ -r "$file" ]; then
+          echo "$command"
+        fi
+      done < <(find -L "$dir/" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.py" \) -print0)
+    fi
+  done
+}
+
+_tuda_wss_commands() {
+  _tuda_wss_commands_impl | uniq | sort
+}
+
+_tuda_wss_help() {
+  source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
+  echo_note "The following commands are available:"
+
+  local commands
+  commands=$(_tuda_wss_commands)
+
+  local out
+  out=""
+
+  for i in ${commands}; do
+    for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
+      scripts_pkg=${dir%/scripts}
+      scripts_pkg=${scripts_pkg##*/}
+
+      if [ -x "$dir/$i.sh" ]; then
+        out+="\t $i \t\t ($scripts_pkg)\n"
+        break
+      elif [ -x "$dir/$i.py" ]; then
+        out+="\t $i \t\t ($scripts_pkg)\n"
+        break
+      elif [ -r "$dir/$i.sh" ]; then
+        out+="* \t $i \t\t ($scripts_pkg)\n"
+        break
+      fi
+    done
+  done
+
+  echo -e "$out" | column -s $'\t' -tn
+
+  echo
+  echo_note "(*) Commands marked with * may change your environment."
+}
+
+function _tuda_wss_complete() {
+  local cur
+  local prev
+
+  if ! type _get_comp_words_by_ref >/dev/null 2>&1; then
+    return 0
+  fi
+
+  COMPREPLY=()
+  _get_comp_words_by_ref cur prev
+
+  # tuda_wss <command>
+  if [ $COMP_CWORD -eq 1 ]; then
+    if [[ "$cur" == -* ]]; then
+      COMPREPLY=($(compgen -W '--help' -- "$cur"))
+    else
+      COMPREPLY=($(compgen -W "$(_tuda_wss_commands)" -- "$cur"))
+    fi
+  fi
+
+  # tuda_wss <remote_pc> <command..>
+  if [ $COMP_CWORD -eq 2 ]; then
+    # check if current scope is remote pc script
+    for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
+      if [[ "$script_name" == "$prev" ]]; then
+        _remote_pc_complete
+        return
+      fi
+    done
+  fi
+
+  # tuda_wss command <subcommand..>
+  if [ $COMP_CWORD -ge 2 ]; then
+    prev=${COMP_WORDS[1]}
+
+    # check if current scope is remote pc script
+    for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
+      if [[ "$script_name" == "$prev" ]]; then
+        prev=${COMP_WORDS[2]}
+        break
+      fi
+    done
+
+    # check for exported completion scripts
+    for i in "${!TUDA_WSS_COMPLETIONS[@]}"; do
+      if [[ "${TUDA_WSS_COMPLETIONS[i]}" == "$prev "* ]]; then
+        eval ${TUDA_WSS_COMPLETIONS[$i]#$prev }
+        return
+      fi
+    done
+
+    # Autocomplete python scripts
+    for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
+      if [ -d "$dir" ]; then
+        while IFS= read -r -d '' file; do
+          local command
+          command=${file#$dir/}
+          if [[ ! -x "$file" ]]; then
+            continue
+          fi
+          command=${command%.py}
+          if [[ "$command" != "$prev" ]]; then
+            continue
+          fi
+
+          if ! which register-python-argcomplete > /dev/null 2>&1; then
+            source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
+            echo ""
+            echo_note "For autocompletion please install argcomplete using 'pip3 install --user argcomplete'"
+          fi
+          local IFS=$'\013'
+          local SUPPRESS_SPACE=0
+          if compopt +o nospace 2> /dev/null; then
+            SUPPRESS_SPACE=1
+          fi
+          COMP_LINE=${COMP_LINE#${COMP_CWORD[0]} } # Remove prefix and space
+          (( COMP_POINT -= ${#COMP_CWORD[0]} + 1 ))
+          COMPREPLY=( $(IFS="$IFS" \
+                        COMP_LINE="$COMP_LINE" \
+                        COMP_POINT="$COMP_POINT" \
+                        COMP_TYPE="$COMP_TYPE" \
+                        _ARGCOMPLETE_COMP_WORDBREAKS="$COMP_WORDBREAKS" \
+                        _ARGCOMPLETE=1 \
+                        _ARGCOMPLETE_SUPPRESS_SPACE=$SUPPRESS_SPACE \
+                        $file 8>&1 9>&2 > /dev/null 2>&1) )
+          if [[ $? != 0 ]]; then
+            unset COMPREPLY
+          elif [[ $SUPPRESS_SPACE == 1 ]] && [[ "$COMPREPLY" =~ [=/:]$ ]]; then
+            compopt -o nospace
+          fi
+          return
+        done < <(find -L "$dir/" -maxdepth 1 -type f -name "*.py" -print0)
+      fi
+    done
+
+    # default completion (special cases; default cases see in 50.exports.bash.em)
+    case $prev in
+    launch)
+      # only execute if ONBOARD_LAUNCH_PKG is set
+      if [ -z "$ONBOARD_LAUNCH_PKG" ]; then
+        source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
+        echo
+        echo_error "ERROR: In order to use the launch command, please set ONBOARD_LAUNCH_PKG."
+        return 1
+      fi
+
+      if [[ "$cur" == -* ]]; then
+        COMPREPLY=($(compgen -W "--screen" -- "$cur"))
+      fi
+
+      COMP_WORDS=(roslaunch $ONBOARD_LAUNCH_PKG $cur)
+      COMP_CWORD=2
+      _roscomplete_launch
+      ;;
+
+    master)
+      if [ $COMP_CWORD -eq 2 ]; then
+        COMPREPLY=($(compgen -W "localhost $ROBOT_HOSTNAMES" -- "$cur"))
+      fi
+      ;;
+
+    ssh)
+      if [ $COMP_CWORD -eq 2 ]; then
+        COMPREPLY=($(compgen -W "$ROBOT_HOSTNAMES" -- "$cur"))
+      fi
+      ;;
+
+    screen)
+      if [ $COMP_CWORD -eq 2 ]; then
+        COMPREPLY=($(compgen -W "start stop show list" -- "$cur"))
+      fi
+      ;;
+
+    sim)
+      if [ $COMP_CWORD -eq 2 ]; then
+        _tuda_wss_sim_complete
+      fi
+      ;;
+
+    *)
+      COMPREPLY=()
+      ;;
+    esac
+  fi
+}
+
+complete -F _tuda_wss_complete tuda_wss
+
+if [ -n "$TUDA_WSS_PREFIX" ] && [ "$TUDA_WSS_PREFIX" != "tuda_wss" ]; then
+  alias $TUDA_WSS_PREFIX=tuda_wss
+  complete -F _tuda_wss_complete TUDA_WSS_PREFIX
+fi
+
+# Load completions
+for file in `find -L $TUDA_WSS_BASE_SCRIPTS/autocompletion/ -maxdepth 1 -type f -name "*.bash"`; do
+    source $file
+done
