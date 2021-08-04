@@ -17,10 +17,39 @@ add_tuda_wss_completion() {
   fi
 }
 
+# @param directory: Directory from which to search the workspace root.
+#   If not provided will try to find from current working directory and if that fails from the COLCON_PREFIX_PATH
+# @return The path to the workspace root or None if no workspace found
+_tuda_wss_get_workspace_root() {
+  if [ $# -eq 1 ]; then
+    if [ -f "$1/.ros2_workspace" ]; then
+      echo "$1"
+      return 0
+    fi
+    _TMP_PARENT=$(dirname "$1")
+    if [ "$_TMP_PARENT" = "$1" ]; then
+      unset _TMP_PARENT
+      return 1
+    fi
+    if _tuda_wss_get_workspace_root "$_TMP_PARENT"; then
+      unset _TMP_PARENT
+      return 0
+    fi
+    unset _TMP_PARENT
+    return 1
+  fi
+  # No dir passed, check current dir
+  if _tuda_wss_get_workspace_root "$PWD"; then
+    return 0
+  fi
+  # Not in current dir, check colcon prefix path
+  if [ -n "$COLCON_PREFIX_PATH" ] && _tuda_wss_get_workspace_root "$COLCON_PREFIX_PATH"; then
+    return 0
+  fi
+  return 1
+}
 
 tuda_wss() {
-  source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
-
   local command
   command="$1"
   shift
@@ -75,13 +104,28 @@ tuda_wss() {
     fi
   done
 
-  echo_error "Unknown workspace script command: $command"
+  if [[ "$command" == "build" ]]; then
+    echo -e "\033[1;34m>>> Workspace is clean, building workspace scripts first\033[0m"
+    _TMP_PWD=$PWD
+    if ! cd "$(_tuda_wss_get_workspace_root)"; then
+      echo -e "\033[0;31mFailed to locate workspace root\033[0m"
+    fi
+    colcon build --packages-select tuda_workspace_scripts
+    cd "$_TMP_PWD"
+    unset _TMP_PWD
+    echo -e "\033[1;34m>>> Running build command again\033[0m"
+    tuda_wss build "$@"
+    return $?
+  fi
+
+  echo -e "\033[0;31mUnknown workspace script command: $command\033[0m"
   _tuda_wss_help
   return 1
 }
 
 _tuda_wss_commands_impl() {
   echo help
+  echo build
 
   for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
     if [ -d "$dir" ]; then
@@ -110,8 +154,7 @@ _tuda_wss_commands() {
 }
 
 _tuda_wss_help() {
-  source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
-  echo_note "The following commands are available:"
+  echo "\033[1;34mThe following commands are available:\033[0m"
 
   local commands
   commands=$(_tuda_wss_commands)
@@ -140,7 +183,7 @@ _tuda_wss_help() {
   echo -e "$out" | column -s $'\t' -tn
 
   echo
-  echo_note "(*) Commands marked with * may change your environment."
+  echo -e "\033[1;34m(*) Commands marked with * may change your environment.\033[0m"
 }
 
 function _tuda_wss_complete() {
@@ -209,17 +252,16 @@ function _tuda_wss_complete() {
           fi
 
           if ! which register-python-argcomplete > /dev/null 2>&1; then
-            source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
             echo ""
-            echo_note "For autocompletion please install argcomplete using 'pip3 install --user argcomplete'"
+            echo -e "\033[1;34mFor autocompletion please install argcomplete using 'pip3 install --user argcomplete'\033[0m"
           fi
           local IFS=$'\013'
           local SUPPRESS_SPACE=0
           if compopt +o nospace 2> /dev/null; then
             SUPPRESS_SPACE=1
           fi
-          COMP_LINE=${COMP_LINE#${COMP_CWORD[0]} } # Remove prefix and space
-          (( COMP_POINT -= ${#COMP_CWORD[0]} + 1 ))
+          COMP_LINE=${COMP_LINE#${COMP_WORDS[0]} } # Remove prefix and space
+          (( COMP_POINT -= ${#COMP_WORDS[0]} + 1 ))
           COMPREPLY=( $(IFS="$IFS" \
                         COMP_LINE="$COMP_LINE" \
                         COMP_POINT="$COMP_POINT" \
@@ -237,55 +279,6 @@ function _tuda_wss_complete() {
         done < <(find -L "$dir/" -maxdepth 1 -type f -name "*.py" -print0)
       fi
     done
-
-    # default completion (special cases; default cases see in 50.exports.bash.em)
-    case $prev in
-    launch)
-      # only execute if ONBOARD_LAUNCH_PKG is set
-      if [ -z "$ONBOARD_LAUNCH_PKG" ]; then
-        source "${TUDA_WSS_BASE_SCRIPTS}/helpers/output.sh"
-        echo
-        echo_error "ERROR: In order to use the launch command, please set ONBOARD_LAUNCH_PKG."
-        return 1
-      fi
-
-      if [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W "--screen" -- "$cur"))
-      fi
-
-      COMP_WORDS=(roslaunch $ONBOARD_LAUNCH_PKG $cur)
-      COMP_CWORD=2
-      _roscomplete_launch
-      ;;
-
-    master)
-      if [ $COMP_CWORD -eq 2 ]; then
-        COMPREPLY=($(compgen -W "localhost $ROBOT_HOSTNAMES" -- "$cur"))
-      fi
-      ;;
-
-    ssh)
-      if [ $COMP_CWORD -eq 2 ]; then
-        COMPREPLY=($(compgen -W "$ROBOT_HOSTNAMES" -- "$cur"))
-      fi
-      ;;
-
-    screen)
-      if [ $COMP_CWORD -eq 2 ]; then
-        COMPREPLY=($(compgen -W "start stop show list" -- "$cur"))
-      fi
-      ;;
-
-    sim)
-      if [ $COMP_CWORD -eq 2 ]; then
-        _tuda_wss_sim_complete
-      fi
-      ;;
-
-    *)
-      COMPREPLY=()
-      ;;
-    esac
   fi
 }
 

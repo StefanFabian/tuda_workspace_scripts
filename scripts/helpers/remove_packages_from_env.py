@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from . import workspace
+from .workspace import get_workspace_root
 import argparse
 import os
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--force', default=False, action='store_true')
 
     args = parser.parse_args()
-    workspace_root = workspace.get_workspace_root()
+    workspace_root = get_workspace_root()
     packages = args.packages or \
                [folder.split(os.path.sep)[-1] for folder in os.listdir(workspace_root) if os.path.isdir(folder)]
 
