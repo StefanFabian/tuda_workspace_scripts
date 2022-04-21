@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export TUDA_WSS_COMPLETIONS=""
+export TUDA_WSS_COMPLETIONS=()
 export TUDA_WSS_BASE_SCRIPTS=@CMAKE_INSTALL_PREFIX@/share/@PROJECT_NAME@/scripts
 
 add_tuda_wss_completion() {
@@ -10,11 +10,7 @@ add_tuda_wss_completion() {
     echo "Example: add_tuda_wss_completion command _command_complete"
     return
   fi
-  if [ -z "${TUDA_WSS_SCRIPTS}" ]; then
-    TUDA_WSS_COMPLETIONS="$1 $2"
-  else
-    TUDA_WSS_COMPLETIONS="${TUDA_WSS_COMPLETIONS}\n$1 $2"
-  fi
+  TUDA_WSS_COMPLETIONS+=("$1 $2")
 }
 
 # @param directory: Directory from which to search the workspace root.
@@ -75,32 +71,6 @@ tuda_wss() {
     elif [ -r "$dir/${command}.bash" ]; then
       source $dir/${command}.bash "$@"
       return 0
-    else
-      # check if current scope is remote pc script
-      for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
-        if [[ "$script_name" == "$command" ]]; then
-          local pc
-          pc=${script_name}_remote_pc
-
-          local OLD_IFS
-          OLD_IFS=$IFS
-          IFS=$TUDA_WSS_SEP_SYM
-
-          local args
-          args=(${!pc})
-          local hostname
-          hostname=${args[1]}
-          local screen_name
-          screen_name=${args[2]}
-          local launch_command
-          launch_command=${args[3]}
-
-          IFS=$OLD_IFS
-
-          remote_pc "${script_name}" "${hostname}" "${screen_name}" "${launch_command}" "$@"
-          return 0
-        fi
-      done
     fi
   done
 
@@ -154,7 +124,7 @@ _tuda_wss_commands() {
 }
 
 _tuda_wss_help() {
-  echo "\033[1;34mThe following commands are available:\033[0m"
+  echo -e "\033[1;34mThe following commands are available:\033[0m"
 
   local commands
   commands=$(_tuda_wss_commands)
@@ -206,28 +176,9 @@ function _tuda_wss_complete() {
     fi
   fi
 
-  # tuda_wss <remote_pc> <command..>
-  if [ $COMP_CWORD -eq 2 ]; then
-    # check if current scope is remote pc script
-    for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
-      if [[ "$script_name" == "$prev" ]]; then
-        _remote_pc_complete
-        return
-      fi
-    done
-  fi
-
   # tuda_wss command <subcommand..>
   if [ $COMP_CWORD -ge 2 ]; then
     prev=${COMP_WORDS[1]}
-
-    # check if current scope is remote pc script
-    for script_name in "${TUDA_WSS_REMOTE_PC_SCRIPTS[@]}"; do
-      if [[ "$script_name" == "$prev" ]]; then
-        prev=${COMP_WORDS[2]}
-        break
-      fi
-    done
 
     # check for exported completion scripts
     for i in "${!TUDA_WSS_COMPLETIONS[@]}"; do
@@ -291,5 +242,5 @@ fi
 
 # Load completions
 for file in `find -L $TUDA_WSS_BASE_SCRIPTS/autocompletion/ -maxdepth 1 -type f -name "*.bash"`; do
-    source $file
+  source $file
 done
