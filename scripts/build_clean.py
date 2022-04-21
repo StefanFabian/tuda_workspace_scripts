@@ -2,7 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 from build import build_packages
 from _clean import clean_packages
-from helpers.output import error
+from helpers.output import print_error
 from helpers.workspace import get_workspace_root, PackageChoicesCompleter
 from helpers.remove_packages_from_env import *
 import argcomplete
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     packages = args.packages or []
 
     if workspace_root is None:
-        error('You are not in a workspace!')
+        print_error('You are not in a workspace!')
         exit(1)
     clean_packages(workspace_root, packages, force=args.force)
     ament_prefix_path = get_ament_prefix_path_without_packages(packages) if any(packages) \

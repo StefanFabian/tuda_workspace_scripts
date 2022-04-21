@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-from helpers.output import error, info
+from helpers.output import print_error, print_info
 from helpers.workspace import get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
@@ -19,31 +19,31 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if workspace_root is None:
-        error('You are not in a workspace!')
+        print_error('You are not in a workspace!')
         exit()
     os.chdir(workspace_root)
-    info('>>> Building packages')
+    print_info('>>> Building packages')
     if args.packages is not None and len(args.packages) > 0:
         command = subprocess.run('colcon build --packages-select ' + ' '.join(args.packages),
                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
         if command.returncode != 0:
-            error('>>> Failed to build packages')
+            print_error('>>> Failed to build packages')
             exit(command.returncode)
-        info('>>> Running tests')
+        print_info('>>> Running tests')
         command = subprocess.run('colcon test --packages-select ' + ' '.join(args.packages),
                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
         returncode = command.returncode
         for package in args.packages:
-            info(f'>>> {package}')
+            print_info(f'>>> {package}')
             command = subprocess.run(f'colcon test-result --verbose --test-result-base build/{package}',
                                      stdout=sys.stdout, stderr=sys.stderr, shell=True)
             returncode |= command.returncode
     else:
         command = subprocess.run('colcon build', stdout=sys.stdout, stderr=sys.stderr, shell=True)
         if command.returncode != 0:
-            error('>>> Failed to build packages')
+            print_error('>>> Failed to build packages')
             exit(command.returncode)
-        info('>>> Running tests')
+        print_info('>>> Running tests')
         command = subprocess.run('colcon test', stdout=sys.stdout, stderr=sys.stderr, shell=True)
         returncode = command.returncode
         command = subprocess.run('colcon test-result --verbose', stdout=sys.stdout, stderr=sys.stderr, shell=True)

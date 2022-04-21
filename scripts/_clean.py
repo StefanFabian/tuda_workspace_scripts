@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from helpers.output import confirm, error, info
+from helpers.output import confirm, print_error, print_info
 from helpers.workspace import get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
@@ -11,14 +11,14 @@ def clean_logs(workspace_root, packages=None, force=False):
     original_path = os.getcwd()
     os.chdir(workspace_root)
     if packages is not None and any(packages):
-        error('--logs and packages are not compatible!')
+        print_error('--logs and packages are not compatible!')
         os.chdir(original_path)
         return 1
     print('  {}/log'.format(os.getcwd()))
     if force or confirm('Continue?'):
         shutil.rmtree('log', ignore_errors=True)
     else:
-        info('Not deleted.')
+        print_info('Not deleted.')
 
     os.chdir(original_path)
 
@@ -45,15 +45,15 @@ def clean_packages(workspace_root, packages, force=False):
             for package in packages:
                 shutil.rmtree(f'build/{package}', ignore_errors=True)
                 shutil.rmtree(f'install/{package}', ignore_errors=True)
-            info(f'>>> {len(packages)} package cleaned.')
+            print_info(f'>>> {len(packages)} package cleaned.')
         else:
             shutil.rmtree('build', ignore_errors=True)
             shutil.rmtree('install', ignore_errors=True)
             shutil.rmtree('log', ignore_errors=True)
-            info(f'>>> ALl packages cleaned.')
+            print_info(f'>>> ALl packages cleaned.')
         print()
     else:
-        info('Not deleted.')
+        print_info('Not deleted.')
 
     os.chdir(original_path)
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if workspace_root is None:
-        error('You are not in a workspace!')
+        print_error('You are not in a workspace!')
         exit()
 
     if args.logs:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-from helpers.output import error
+from helpers.output import print_error
 from helpers.workspace import get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if workspace_root is None:
-        error('You are not in a workspace!')
+        print_error('You are not in a workspace!')
         exit()
 
     sys.exit(build_packages(workspace_root, args.packages or [], debug=args.debug, no_deps=args.no_deps))
