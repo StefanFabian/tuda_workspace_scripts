@@ -9,11 +9,13 @@ import subprocess
 import sys
 
 
-def build_packages(workspace_root, packages, env=None, debug=False, no_deps=False):
+def build_packages(workspace_root, packages, env=None, debug=False, no_deps=False, continue_on_error=False):
     os.chdir(workspace_root)
     arguments = []
     if debug:
         arguments += ['--cmake-args', '-DCMAKE_BUILD_TYPE=Debug']
+    if continue_on_error:
+        arguments += ['--continue-on-error']
     if any(packages):
         arguments += ['--packages-up-to'] if not no_deps else ['--packages-select']
         arguments += packages
@@ -30,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--this', default=False, action='store_true')
     parser.add_argument('--debug', default=False, action='store_true')
     parser.add_argument('--no-deps', default=False, action='store_true')
+    parser.add_argument('--continue-on-error', default=False, action='store_true')
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
@@ -38,4 +41,5 @@ if __name__ == '__main__':
         print_error('You are not in a workspace!')
         exit()
 
-    sys.exit(build_packages(workspace_root, args.packages or [], debug=args.debug, no_deps=args.no_deps))
+    sys.exit(build_packages(workspace_root, args.packages or [], debug=args.debug, no_deps=args.no_deps,
+                            continue_on_error=args.continue_on_error))
