@@ -202,7 +202,7 @@ function _tuda_wss_complete() {
             continue
           fi
 
-          if ! which register-python-argcomplete > /dev/null 2>&1; then
+          if ! which register-python-argcomplete > /dev/null 2>&1 && !  which register-python-argcomplete3 > /dev/null 2>&1; then
             echo ""
             echo -e "\033[1;34mFor autocompletion please install argcomplete using 'pip3 install --user argcomplete'\033[0m"
           fi
