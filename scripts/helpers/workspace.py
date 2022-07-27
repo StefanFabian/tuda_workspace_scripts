@@ -21,6 +21,13 @@ def get_workspace_root(directory=None):
     return None if parent == directory else get_workspace_root(parent)
 
 
+def get_packages_in_workspace(workspace_path=None):
+    if workspace_path is None:
+        workspace_path = get_workspace_root()
+    packages = get_packages_with_prefixes()
+    return [name for name in packages if packages[name].startswith(workspace_path)]
+
+
 class PackageChoicesCompleter:
     def __init__(self, workspace_path):
         self.workspace_path = workspace_path
@@ -28,8 +35,7 @@ class PackageChoicesCompleter:
     def __call__(self, **kwargs):
         if self.workspace_path is None:
             return []
-        packages = get_packages_with_prefixes()
-        return [name for name in packages if packages[name].startswith(self.workspace_path)]
+        return get_packages_in_workspace(self.workspace_path)
 
 
 if __name__ == '__main__':

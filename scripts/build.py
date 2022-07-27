@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from helpers.output import print_error
-from helpers.workspace import get_workspace_root, PackageChoicesCompleter
+from helpers.workspace import get_packages_in_workspace, get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
 import os
@@ -11,7 +11,7 @@ import sys
 
 def build_packages(workspace_root, packages, env=None, debug=False, no_deps=False, continue_on_error=False):
     os.chdir(workspace_root)
-    arguments = []
+    arguments = ['--allow-overriding'] + get_packages_in_workspace(workspace_root)
     if debug:
         arguments += ['--cmake-args', '-DCMAKE_BUILD_TYPE=Debug']
     if continue_on_error:
