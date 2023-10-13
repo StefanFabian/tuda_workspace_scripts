@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-from ament_index_python import get_packages_with_prefixes
+try:
+    from colcon_core.plugin_system import get_package_identification_extensions
+except ImportError:
+    from colcon_core.package_identification import get_package_identification_extensions
+from colcon_core.package_identification import identify, IgnoreLocationException
 import os
 
 
@@ -24,8 +28,27 @@ def get_workspace_root(directory=None):
 def get_packages_in_workspace(workspace_path=None):
     if workspace_path is None:
         workspace_path = get_workspace_root()
-    packages = get_packages_with_prefixes()
-    return [name for name in packages if packages[name].startswith(workspace_path)]
+    packages = []
+    identification_extensions = get_package_identification_extensions()
+    visited_paths = set()
+    for dirpath, dirnames, _ in os.walk(".", followlinks=True):
+        real_dirpath = os.path.realpath(dirpath)
+        if real_dirpath in visited_paths:
+            del dirnames[:]
+            continue
+        visited_paths.add(real_dirpath)
+        try:
+            result = identify(identification_extensions, dirpath)
+        except IgnoreLocationException:
+            del dirnames[:]
+            continue
+        if result:
+            packages.append(result)
+            del dirnames[:]
+            continue
+        dirnames[:] = [d for d in dirnames if not d.startswith('.')]
+
+    return [p.name for p in packages]
 
 
 class PackageChoicesCompleter:

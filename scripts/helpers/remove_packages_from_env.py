@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from .workspace import get_workspace_root
+from .workspace import get_packages_in_workspace, get_workspace_root
 import argparse
 import os
 
@@ -48,9 +48,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     workspace_root = get_workspace_root()
-    packages = args.packages or \
-               [folder.split(os.path.sep)[-1] for folder in os.listdir(workspace_root) if os.path.isdir(folder)]
-
+    packages = args.packages or get_packages_in_workspace()
     ament_prefix_path = get_ament_prefix_path_without_packages(packages)
     if ament_prefix_path is not None:
         print(f'export AMENT_PREFIX_PATH={ament_prefix_path};')
