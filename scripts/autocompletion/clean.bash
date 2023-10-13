@@ -3,7 +3,7 @@
 function _tudawss_clean_complete() {
   if ! which register-python-argcomplete > /dev/null 2>&1; then
     echo ""
-    echo_note "For autocompletion please install argcomplete using 'pip3 install --user argcomplete'"
+    echo "For autocompletion please install argcomplete using 'pip3 install --user argcomplete'"
   fi
   local IFS=$'\013'
   local SUPPRESS_SPACE=0
