@@ -94,8 +94,8 @@ tuda_wss() {
 }
 
 _tuda_wss_commands_impl() {
-  echo help
-  echo build
+  echo "help"
+  echo "build"
 
   for dir in ${TUDA_WSS_SCRIPTS//:/ }; do
     if [ -d "$dir" ]; then
@@ -120,7 +120,7 @@ _tuda_wss_commands_impl() {
 }
 
 _tuda_wss_commands() {
-  _tuda_wss_commands_impl | uniq | sort
+  _tuda_wss_commands_impl | sort | uniq
 }
 
 _tuda_wss_help() {
@@ -150,7 +150,11 @@ _tuda_wss_help() {
     done
   done
 
-  echo -e "$out" | column -s $'\t' -tn
+  if command -v column >/dev/null 2>&1; then
+    echo -e "$out" | column -s $'\t' -t
+  else
+    echo -e "$out"
+  fi
 
   echo
   echo -e "\033[1;34m(*) Commands marked with * may change your environment.\033[0m"
