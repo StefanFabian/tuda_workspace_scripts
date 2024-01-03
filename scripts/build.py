@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from helpers.output import print_error
-from helpers.workspace import get_packages_in_workspace, get_workspace_root, PackageChoicesCompleter
+from helpers.workspace import get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
 from colcon_core import __version__ as colcon_core_version

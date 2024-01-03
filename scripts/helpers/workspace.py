@@ -11,7 +11,7 @@ def get_workspace_root(directory=None):
     """
     :param directory: Directory from which to search the workspace root. If None will try to find from current and if
       that fails from the COLCON_PREFIX_PATH
-    :return: The path to the workspace root or None if no workspace found
+    :return: The path to the workspace root or None if no workspace found.
     """
     if directory is None:
         root = get_workspace_root(os.getcwd())
@@ -25,13 +25,11 @@ def get_workspace_root(directory=None):
     return None if parent == directory else get_workspace_root(parent)
 
 
-def get_packages_in_workspace(workspace_path=None):
-    if workspace_path is None:
-        workspace_path = get_workspace_root()
+def find_packages_in_directory(directory):
     packages = []
     identification_extensions = get_package_identification_extensions()
     visited_paths = set()
-    for dirpath, dirnames, _ in os.walk(".", followlinks=True):
+    for dirpath, dirnames, _ in os.walk(directory, followlinks=True):
         real_dirpath = os.path.realpath(dirpath)
         if real_dirpath in visited_paths:
             del dirnames[:]
@@ -51,8 +49,25 @@ def get_packages_in_workspace(workspace_path=None):
     return [p.name for p in packages]
 
 
+def get_packages_in_workspace(workspace_path = None):
+
+    """
+    Looks for packages in the src folder of a workspace.
+    :param workspace_path: Path to the workspace root (The parent directory of the src folder).
+        If None will use get_workspace_root() to try to find it.
+    """
+    if workspace_path is None:
+        workspace_path = get_workspace_root()
+        if workspace_path is None:
+            return []
+    return find_packages_in_directory(os.path.join(workspace_path, "src"))
+
+
 class PackageChoicesCompleter:
     def __init__(self, workspace_path):
+        """
+        Looks for packages in the src subdirectory of the workspace located at workspace_path.
+        """
         self.workspace_path = workspace_path
 
     def __call__(self, **kwargs):
