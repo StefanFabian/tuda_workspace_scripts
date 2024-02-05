@@ -1,1 +1,2 @@
 prepend-non-duplicate;TUDA_WSS_SCRIPTS;share/@PROJECT_NAME@/scripts
+prepend-non-duplicate;TUDA_WSS_CONFIGS;share/@PROJECT_NAME@/config.yaml

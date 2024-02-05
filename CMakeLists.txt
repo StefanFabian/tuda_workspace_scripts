@@ -10,6 +10,9 @@ else()
   ament_environment_hooks(env_hooks/command.bash.in)
 endif()
 
+ament_python_install_package(${PROJECT_NAME})
+
 install(DIRECTORY scripts DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
+install(FILES config.yaml DESTINATION share/${PROJECT_NAME})
 
 ament_package()

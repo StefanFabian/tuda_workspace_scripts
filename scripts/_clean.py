@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from helpers.output import confirm, print_error, print_info
-from helpers.workspace import get_workspace_root, PackageChoicesCompleter
+from tuda_workspace_scripts.print import confirm, print_error, print_info
+from tuda_workspace_scripts.workspace import get_workspace_root, PackageChoicesCompleter
 import argcomplete
 import argparse
 import os

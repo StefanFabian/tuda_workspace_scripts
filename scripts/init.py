@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
-from helpers.output import *
-from helpers.workspace import get_workspace_root
+from tuda_workspace_scripts.print import *
+from tuda_workspace_scripts.workspace import get_workspace_root
 
 if __name__ == '__main__':
     alias = os.environ.get('TUDA_WSS_PREFIX', 'tuda_wss')

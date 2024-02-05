@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from .workspace import get_packages_in_workspace, get_workspace_root
+from tuda_workspace_scripts.workspace import get_packages_in_workspace, get_workspace_root
 import argparse
 import os
 

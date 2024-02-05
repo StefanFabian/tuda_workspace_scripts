@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from build import build_packages
-from _clean import clean_packages
-from helpers.output import print_error
-from helpers.workspace import get_workspace_root, PackageChoicesCompleter
+from ._clean import clean_packages
+from tuda_workspace_scripts.print import print_error
+from tuda_workspace_scripts.workspace import get_workspace_root, PackageChoicesCompleter
 from helpers.remove_packages_from_env import *
 import argcomplete
 import argparse
