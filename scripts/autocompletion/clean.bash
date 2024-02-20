@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function _tudawss_clean_complete() {
-  if ! which register-python-argcomplete > /dev/null 2>&1; then
+  if ! which register-python-argcomplete > /dev/null 2>&1 && ! which register-python-argcomplete3 > /dev/null 2>&1; then
     echo ""
     echo "For autocompletion please install argcomplete using 'pip3 install --user argcomplete'"
   fi
