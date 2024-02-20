@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+source /opt/ros/$ROS_DISTRO/setup.bash
+echo ">>> Installing dependencies"
+AMENT_PREFIX_PATH=$(pwd) ROS_PACKAGE_PATH=$(pwd) rosdep install -i -y -r $@
+echo ">>> Building workspace"
+# Use build type in BUILD_TYPE env if set otherwise default to RelWithDebInfo
+BUILD_TYPE=${BUILD_TYPE:-RelWithDebInfo}
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=$BUILD_TYPE --packages-select $@
