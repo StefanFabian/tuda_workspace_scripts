@@ -2,7 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 from tuda_workspace_scripts import load_config
 from tuda_workspace_scripts.print import print_error
-from tuda_workspace_scripts.workspace import get_workspace_root, PackageChoicesCompleter
+from tuda_workspace_scripts.workspace import *
 import argcomplete
 import argparse
 
@@ -16,11 +16,7 @@ import sys
 
 
 def build_packages(
-    packages,
-    env=None,
-    build_type=None,
-    no_deps=False,
-    continue_on_error=False,
+    packages, env=None, build_type=None, no_deps=False, continue_on_error=False
 ) -> int:
     workspace_root = get_workspace_root()
     if workspace_root is None:
@@ -35,9 +31,9 @@ def build_packages(
         arguments += ["--allow-overriding"] + packages
     if continue_on_error:
         arguments += ["--continue-on-error"]
-    if config.variables.workspace_install == 'symlink':
+    if config.variables.workspace_install == "symlink":
         arguments += ["--symlink-install"]
-    elif config.variables.workspace_install == 'merge':
+    elif config.variables.workspace_install == "merge":
         arguments += ["--merge-install"]
     if any(packages):
         arguments += ["--packages-up-to"] if not no_deps else ["--packages-select"]
@@ -59,7 +55,12 @@ if __name__ == "__main__":
         "packages", nargs="*", help="If specified only these packages are built."
     )
     packages_arg.completer = PackageChoicesCompleter(workspace_root)
-    parser.add_argument("--this", default=False, action="store_true")
+    parser.add_argument(
+        "--this",
+        default=False,
+        action="store_true",
+        help="Build the package(s) in the current directory.",
+    )
     parser.add_argument("--debug", default=False, action="store_true")
     parser.add_argument("--rel-with-deb-info", default=False, action="store_true")
     parser.add_argument("--no-deps", default=False, action="store_true")
@@ -78,9 +79,13 @@ if __name__ == "__main__":
     elif args.rel_with_deb_info:
         build_type = "RelWithDebInfo"
 
+    packages = args.packages or []
+    if args.this:
+        packages = find_packages_in_directory(os.getcwd())
+
     sys.exit(
         build_packages(
-            args.packages or [],
+            packages,
             build_type=build_type,
             no_deps=args.no_deps,
             continue_on_error=args.continue_on_error,
