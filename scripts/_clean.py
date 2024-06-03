@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from tuda_workspace_scripts.print import confirm, print_error, print_info
 from tuda_workspace_scripts.workspace import get_workspace_root, PackageChoicesCompleter
+from helpers.remove_packages_from_env import *
 import argcomplete
 import argparse
 import os
@@ -23,39 +24,51 @@ def clean_logs(workspace_root, packages=None, force=False):
     os.chdir(original_path)
 
 
-def clean_packages(workspace_root, packages, force=False):
+def clean_packages(workspace_root, packages, force=False) -> bool:
     original_path = os.getcwd()
     os.chdir(workspace_root)
-    print('I will delete:')
-    if any(packages):
-        if len(packages) <= 3:
-            for package in packages:
-                print(f'  {os.getcwd()}/build/{package}')
-                print(f'  {os.getcwd()}/install/{package}')
+    try:
+        print('I will delete:')
+        if any(packages):
+            if len(packages) <= 3:
+                for package in packages:
+                    print(f'  {os.getcwd()}/build/{package}')
+                    print(f'  {os.getcwd()}/install/{package}')
+            else:
+                print(f'  {os.getcwd()}/build/[PACKAGES]')
+                print(f'  {os.getcwd()}/install/[PACKAGES]')
         else:
-            print(f'  {os.getcwd()}/build/[PACKAGES]')
-            print(f'  {os.getcwd()}/install/[PACKAGES]')
-    else:
-        print(f'  {os.getcwd()}/build')
-        print(f'  {os.getcwd()}/install')
-        print(f'  {os.getcwd()}/log')
+            print(f'  {os.getcwd()}/build')
+            print(f'  {os.getcwd()}/install')
+            print(f'  {os.getcwd()}/log')
 
-    if force or confirm('Continue?'):
+        if not force and not confirm('Continue?'):
+            print_info('Not deleted.')
+            return False
+        
         if any(packages):
             for package in packages:
                 shutil.rmtree(f'build/{package}', ignore_errors=True)
                 shutil.rmtree(f'install/{package}', ignore_errors=True)
+            ament_prefix_path = get_ament_prefix_path_without_packages(packages)
+            cmake_prefix_path = get_cmake_prefix_path_without_packages(packages)
             print_info(f'>>> {len(packages)} package cleaned.')
         else:
             shutil.rmtree('build', ignore_errors=True)
             shutil.rmtree('install', ignore_errors=True)
             shutil.rmtree('log', ignore_errors=True)
-            print_info(f'>>> ALl packages cleaned.')
-        print()
-    else:
-        print_info('Not deleted.')
+            ament_prefix_path = get_ament_prefix_path_without_workspace(workspace_root)
+            cmake_prefix_path = get_cmake_prefix_path_without_workspace(workspace_root)
+            print_info(f'>>> All packages cleaned.')
 
-    os.chdir(original_path)
+        if ament_prefix_path is not None:
+            os.environ['AMENT_PREFIX_PATH'] = ament_prefix_path
+        if cmake_prefix_path is not None:
+            os.environ['CMAKE_PREFIX_PATH'] = cmake_prefix_path
+        print()
+        return True
+    finally:
+        os.chdir(original_path)
 
 
 if __name__ == '__main__':

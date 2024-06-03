@@ -3,6 +3,7 @@
 from tuda_workspace_scripts import load_config
 from tuda_workspace_scripts.print import print_error
 from tuda_workspace_scripts.workspace import *
+from _clean import clean_packages
 import argcomplete
 import argparse
 
@@ -15,13 +16,7 @@ import subprocess
 import sys
 
 
-def build_packages(
-    packages, env=None, build_type=None, no_deps=False, continue_on_error=False
-) -> int:
-    workspace_root = get_workspace_root()
-    if workspace_root is None:
-        print_error("You are not in a workspace!")
-        return 1
+def build_packages(workspace_root, packages, env=None, build_type=None, no_deps=False, continue_on_error=False) -> int:
     os.chdir(workspace_root)
     config = load_config()
     arguments = []
@@ -61,10 +56,10 @@ if __name__ == "__main__":
         action="store_true",
         help="Build the package(s) in the current directory.",
     )
-    parser.add_argument("--debug", default=False, action="store_true")
-    parser.add_argument("--rel-with-deb-info", default=False, action="store_true")
-    parser.add_argument("--no-deps", default=False, action="store_true")
-    parser.add_argument("--continue-on-error", default=False, action="store_true")
+    parser.add_argument("--build-type", choices=["Debug", "RelWithDebInfo"], default=None, help="The cmake build type.")
+    parser.add_argument('--no-deps', default=False, action='store_true', help='Build only the specified packages, not their dependencies.')
+    parser.add_argument('--continue-on-error', default=False, action='store_true', help='Continue building other packages if a package build fails.')
+    parser.add_argument('--clean', default=False, action='store_true', help='Clean before building.')
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
@@ -73,20 +68,17 @@ if __name__ == "__main__":
         print_error("You are not in a workspace!")
         exit()
 
-    build_type = None
-    if args.debug:
-        build_type = "Debug"
-    elif args.rel_with_deb_info:
-        build_type = "RelWithDebInfo"
-
     packages = args.packages or []
     if args.this:
         packages = find_packages_in_directory(os.getcwd())
 
+    if args.clean:
+        clean_packages(workspace_root, packages, force=False)
     sys.exit(
         build_packages(
+            workspace_root,
             packages,
-            build_type=build_type,
+            build_type=args.build_type,
             no_deps=args.no_deps,
             continue_on_error=args.continue_on_error,
         )
