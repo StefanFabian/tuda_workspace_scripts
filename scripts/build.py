@@ -3,6 +3,7 @@
 from tuda_workspace_scripts import load_config
 from tuda_workspace_scripts.print import print_error
 from tuda_workspace_scripts.workspace import *
+from tuda_workspace_scripts.completion import *
 from _clean import clean_packages
 import argcomplete
 import argparse
@@ -16,7 +17,14 @@ import subprocess
 import sys
 
 
-def build_packages(workspace_root, packages, env=None, build_type=None, no_deps=False, continue_on_error=False) -> int:
+def build_packages(
+    workspace_root,
+    packages,
+    env=None,
+    build_type=None,
+    no_deps=False,
+    continue_on_error=False,
+) -> int:
     os.chdir(workspace_root)
     config = load_config()
     arguments = []
@@ -56,12 +64,31 @@ if __name__ == "__main__":
         action="store_true",
         help="Build the package(s) in the current directory.",
     )
-    parser.add_argument("--build-type", choices=["Debug", "RelWithDebInfo"], default=None, help="The cmake build type.")
-    parser.add_argument('--no-deps', default=False, action='store_true', help='Build only the specified packages, not their dependencies.')
-    parser.add_argument('--continue-on-error', default=False, action='store_true', help='Continue building other packages if a package build fails.')
-    parser.add_argument('--clean', default=False, action='store_true', help='Clean before building.')
+    build_arg = parser.add_argument(
+        "--build-type",
+        default=None,
+        nargs=1,
+        help="The cmake build type.",
+    )
+    build_arg.completer = PrefixFilteredChoicesCompleter(("Debug", "RelWithDebInfo", "Release"))
+    parser.add_argument(
+        "--no-deps",
+        default=False,
+        action="store_true",
+        help="Build only the specified packages, not their dependencies.",
+    )
+    parser.add_argument(
+        "--continue-on-error",
+        default=False,
+        action="store_true",
+        help="Continue building other packages if a package build fails.",
+    )
+    parser.add_argument(
+        "--clean", default=False, action="store_true", help="Clean before building."
+    )
 
-    argcomplete.autocomplete(parser)
+    completer = SmartCompletionFinder(parser)
+    completer(parser)
     args = parser.parse_args()
 
     if workspace_root is None:
@@ -71,9 +98,12 @@ if __name__ == "__main__":
     packages = args.packages or []
     if args.this:
         packages = find_packages_in_directory(os.getcwd())
+        if len(packages) == 0:
+            print_error("No package found in the current directory!")
+            exit(1)
 
-    if args.clean:
-        clean_packages(workspace_root, packages, force=False)
+    if args.clean and not clean_packages(workspace_root, packages, force=False):
+        sys.exit(1)
     sys.exit(
         build_packages(
             workspace_root,
