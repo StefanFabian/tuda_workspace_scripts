@@ -108,7 +108,7 @@ if __name__ == "__main__":
         build_packages(
             workspace_root,
             packages,
-            build_type=args.build_type,
+            build_type=args.build_type[0] if args.build_type else None,
             no_deps=args.no_deps,
             continue_on_error=args.continue_on_error,
         )
