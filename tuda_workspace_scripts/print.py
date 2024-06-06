@@ -1,6 +1,6 @@
 from os import write
 from shutil import get_terminal_size
-from sys import stdout
+from sys import stderr, stdout
 from textwrap import wrap
 
 class Colors:
@@ -38,7 +38,7 @@ def print_warn(message, file=stdout):
     print_color(Colors.Warning, message, file)
 
 
-def print_error(message, file=stdout):
+def print_error(message, file=stderr):
     print_color(Colors.Error, message, file)
 
 
