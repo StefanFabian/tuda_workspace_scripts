@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # PYTHON_ARGCOMPLETE_OK
 from tuda_workspace_scripts.print import Colors, print_error, print_info, print_color
 from tuda_workspace_scripts.workspace import get_workspace_root, PackageChoicesCompleter

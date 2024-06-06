@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # PYTHON_ARGCOMPLETE_OK
 from tuda_workspace_scripts import load_config
 from tuda_workspace_scripts.print import print_error

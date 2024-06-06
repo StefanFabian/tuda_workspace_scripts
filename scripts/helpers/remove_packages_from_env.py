@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from tuda_workspace_scripts.workspace import get_packages_in_workspace, get_workspace_root
 import argparse
 import os

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python33
 try:
     from colcon_core.plugin_system import get_package_identification_extensions
 except ImportError:
