@@ -13,7 +13,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     packages_arg = parser.add_argument('packages', nargs='*', help='If specified only these packages are built.')
     packages_arg.completer = PackageChoicesCompleter(workspace_root)
-    parser.add_argument('--this', default=False, action='store_true')
+    parser.add_argument('--this', default=False, action='store_true', help='Test the packages in the current directory.')
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
