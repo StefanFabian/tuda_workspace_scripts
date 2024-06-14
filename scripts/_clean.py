@@ -30,13 +30,8 @@ def clean_packages(workspace_root, packages, force=False) -> bool:
     try:
         print('I will delete:')
         if any(packages):
-            if len(packages) <= 3:
-                for package in packages:
-                    print(f'  {os.getcwd()}/build/{package}')
-                    print(f'  {os.getcwd()}/install/{package}')
-            else:
-                print(f'  {os.getcwd()}/build/[PACKAGES]')
-                print(f'  {os.getcwd()}/install/[PACKAGES]')
+            print(f'  {os.getcwd()}/build/{{{",".join(packages)}}}')
+            print(f'  {os.getcwd()}/install/{{{",".join(packages)}}}')
         else:
             print(f'  {os.getcwd()}/build')
             print(f'  {os.getcwd()}/install')

@@ -70,7 +70,9 @@ if __name__ == "__main__":
         nargs=1,
         help="The cmake build type.",
     )
-    build_arg.completer = PrefixFilteredChoicesCompleter(("Debug", "RelWithDebInfo", "Release"))
+    build_arg.completer = PrefixFilteredChoicesCompleter(
+        ("Debug", "RelWithDebInfo", "Release")
+    )
     parser.add_argument(
         "--no-deps",
         default=False,
@@ -85,6 +87,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--clean", default=False, action="store_true", help="Clean before building."
+    )
+    parser.add_argument(
+        "--yes",
+        "-y",
+        default=False,
+        action="store_true",
+        help="Automatically answer yes to all questions.",
     )
 
     completer = SmartCompletionFinder(parser)
@@ -102,7 +111,7 @@ if __name__ == "__main__":
             print_error("No package found in the current directory!")
             exit(1)
 
-    if args.clean and not clean_packages(workspace_root, packages, force=False):
+    if args.clean and not clean_packages(workspace_root, packages, force=args.yes):
         sys.exit(1)
     try:
         sys.exit(
