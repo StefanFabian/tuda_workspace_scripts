@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# PYTHON_ARGCOMPLETE_OK
+from tuda_workspace_scripts.build import build_packages
 from tuda_workspace_scripts.print import print_error, print_info
 from tuda_workspace_scripts.workspace import find_packages_in_directory, get_workspace_root, PackageChoicesCompleter
 import argcomplete
@@ -32,11 +32,10 @@ if __name__ == '__main__':
     os.chdir(workspace_root)
     print_info('>>> Building packages')
     if len(packages) > 0:
-        command = subprocess.run('colcon build --packages-select ' + ' '.join(packages),
-                                 stdout=sys.stdout, stderr=sys.stderr, shell=True)
-        if command.returncode != 0:
+        returncode = build_packages(workspace_root, packages)
+        if returncode != 0:
             print_error('>>> Failed to build packages')
-            exit(command.returncode)
+            exit(returncode)
         print_info('>>> Running tests')
         command = subprocess.run('colcon test --packages-select ' + ' '.join(packages),
                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
@@ -47,10 +46,10 @@ if __name__ == '__main__':
                                      stdout=sys.stdout, stderr=sys.stderr, shell=True)
             returncode |= command.returncode
     else:
-        command = subprocess.run('colcon build', stdout=sys.stdout, stderr=sys.stderr, shell=True)
-        if command.returncode != 0:
+        returncode = build_packages(workspace_root)
+        if returncode != 0:
             print_error('>>> Failed to build packages')
-            exit(command.returncode)
+            exit(returncode)
         print_info('>>> Running tests')
         command = subprocess.run('colcon test', stdout=sys.stdout, stderr=sys.stderr, shell=True)
         returncode = command.returncode

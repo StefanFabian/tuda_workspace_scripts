@@ -1,54 +1,15 @@
 #!/usr/bin/env python3
-# PYTHON_ARGCOMPLETE_OK
-from tuda_workspace_scripts import load_config
+from tuda_workspace_scripts.build import build_packages
 from tuda_workspace_scripts.print import print_error
 from tuda_workspace_scripts.workspace import *
 from tuda_workspace_scripts.completion import *
 from _clean import clean_packages
 import argcomplete
 import argparse
-
-try:
-    import colcon_override_check
-except ImportError:
-    colcon_override_check = None
 import os
-import subprocess
 import sys
 
 
-def build_packages(
-    workspace_root,
-    packages,
-    env=None,
-    build_type=None,
-    no_deps=False,
-    continue_on_error=False,
-) -> int:
-    os.chdir(workspace_root)
-    config = load_config()
-    arguments = []
-    if build_type is not None:
-        arguments += ["--cmake-args", f"-DCMAKE_BUILD_TYPE={build_type}"]
-    if colcon_override_check is not None and any(packages):
-        arguments += ["--allow-overriding"] + packages
-    if continue_on_error:
-        arguments += ["--continue-on-error"]
-    if config.variables.workspace_install == "symlink":
-        arguments += ["--symlink-install"]
-    elif config.variables.workspace_install == "merge":
-        arguments += ["--merge-install"]
-    if any(packages):
-        arguments += ["--packages-up-to"] if not no_deps else ["--packages-select"]
-        arguments += packages
-    command = subprocess.run(
-        f'colcon build {" ".join(arguments)}',
-        stdout=sys.stdout,
-        stderr=sys.stderr,
-        shell=True,
-        env=env,
-    )
-    return command.returncode
 
 
 if __name__ == "__main__":

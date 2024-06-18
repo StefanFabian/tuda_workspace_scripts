@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# PYTHON_ARGCOMPLETE_OK
 import argparse
 import argcomplete
 from tuda_workspace_scripts.config import (

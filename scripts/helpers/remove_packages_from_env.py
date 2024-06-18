@@ -1,43 +1,9 @@
 #!/usr/bin/env python3
-from tuda_workspace_scripts.workspace import get_packages_in_workspace, get_workspace_root
+from tuda_workspace_scripts.workspace import *
 import argparse
 import os
 
 
-def get_ament_prefix_path_without_packages(packages):
-    ament_prefix_path = os.environ.get('AMENT_PREFIX_PATH', None)
-    if ament_prefix_path is None:
-        return None
-    paths = ament_prefix_path.split(os.pathsep)
-    paths = filter(lambda x: x.split(os.path.sep)[-1] not in packages, paths)
-    return os.pathsep.join(paths)
-
-
-def get_ament_prefix_path_without_workspace(workspace_root):
-    ament_prefix_path = os.environ.get('AMENT_PREFIX_PATH', None)
-    if ament_prefix_path is None:
-        return None
-    paths = ament_prefix_path.split(os.pathsep)
-    paths = filter(lambda x: not x.startswith(workspace_root), paths)
-    return os.pathsep.join(paths)
-
-
-def get_cmake_prefix_path_without_packages(packages):
-    cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', None)
-    if cmake_prefix_path is None:
-        return None
-    paths = cmake_prefix_path.split(os.pathsep)
-    paths = filter(lambda x: x.split(os.path.sep)[-1] not in packages, paths)
-    return os.pathsep.join(paths)
-
-
-def get_cmake_prefix_path_without_workspace(workspace_root):
-    cmake_prefix_path = os.environ.get('CMAKE_PREFIX_PATH', None)
-    if cmake_prefix_path is None:
-        return None
-    paths = cmake_prefix_path.split(os.pathsep)
-    paths = filter(lambda x: not x.startswith(workspace_root), paths)
-    return os.pathsep.join(paths)
 
 
 if __name__ == '__main__':
