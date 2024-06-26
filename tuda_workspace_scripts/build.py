@@ -19,6 +19,7 @@ def build_packages(
     build_type=None,
     no_deps=False,
     continue_on_error=False,
+    build_tests=False,
 ) -> int:
     os.chdir(workspace_root)
     config = load_config()
@@ -33,6 +34,8 @@ def build_packages(
         arguments += ["--symlink-install"]
     elif config.variables.workspace_install == "merge":
         arguments += ["--merge-install"]
+    arguments += [f"--cmake-args -DBUILD_TESTING={'ON' if build_tests else 'OFF'}"]
+
     if any(packages):
         arguments += ["--packages-up-to"] if not no_deps else ["--packages-select"]
         arguments += packages

@@ -25,6 +25,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Build the package(s) in the current directory.",
     )
+    parser.add_argument(
+        "--build-tests",
+        default=False,
+        action="store_true",
+        help="Enable building tests.",
+    )
     build_arg = parser.add_argument(
         "--build-type",
         default=None,
@@ -82,6 +88,7 @@ if __name__ == "__main__":
                 build_type=args.build_type[0] if args.build_type else None,
                 no_deps=args.no_deps,
                 continue_on_error=args.continue_on_error,
+                build_tests=args.build_tests,
             )
         )
     except KeyboardInterrupt:

@@ -32,7 +32,7 @@ if __name__ == '__main__':
     os.chdir(workspace_root)
     print_info('>>> Building packages')
     if len(packages) > 0:
-        returncode = build_packages(workspace_root, packages)
+        returncode = build_packages(workspace_root, packages, build_tests=True)
         if returncode != 0:
             print_error('>>> Failed to build packages')
             exit(returncode)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                      stdout=sys.stdout, stderr=sys.stderr, shell=True)
             returncode |= command.returncode
     else:
-        returncode = build_packages(workspace_root)
+        returncode = build_packages(workspace_root, build_tests=True)
         if returncode != 0:
             print_error('>>> Failed to build packages')
             exit(returncode)
