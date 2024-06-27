@@ -24,6 +24,10 @@ def build_packages(
     os.chdir(workspace_root)
     config = load_config()
     arguments = []
+    build_type = build_type or config.variables.default_build_type
+    if build_type not in ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"]:
+        print_error(f"Unknown build type: {build_type}. Ignoring.")
+        build_type = None
     if build_type is not None:
         arguments += ["--cmake-args", f"-DCMAKE_BUILD_TYPE={build_type}"]
     if colcon_override_check is not None and any(packages):

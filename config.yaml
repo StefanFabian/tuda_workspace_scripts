@@ -1,5 +1,14 @@
 variables:
-  - name: "workspace_install"
+  - name: default_build_type
+    default: null
+    description: "Choose the default build type for the workspace. Options are 'Debug', 'RelWithDebInfo' and 'Release'."
+    choices:
+      - "Debug"
+      - "RelWithDebInfo"
+      - "Release"
+      - "MinSizeRel"
+      - "Default"
+  - name: workspace_install
     default: "isolated"
     description: "Choose the install type for the workspace. Options are 'isolated', 'merged' and 'symlink'.\n\
       The ROS2 default is 'isolated' which installs all packages into their own subfolder in the install folder.\n\
