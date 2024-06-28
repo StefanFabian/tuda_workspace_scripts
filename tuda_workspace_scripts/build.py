@@ -21,6 +21,7 @@ def build_packages(
     no_deps=False,
     continue_on_error=False,
     build_tests=False,
+    verbose=False,
 ) -> int:
     os.chdir(workspace_root)
     arguments = []
@@ -44,6 +45,9 @@ def build_packages(
     print_info("Command:")
     print(f"colcon build {' '.join(arguments)}")
     print_info(f">>> Running in {workspace_root}")
+    if verbose:
+        os.environ["VERBOSE"] = "1"
+        arguments += ["--event-handlers", "console_cohesion+", "console_direct+"]
     command = subprocess.run(
         f'colcon build {" ".join(arguments)}',
         stdout=sys.stdout,

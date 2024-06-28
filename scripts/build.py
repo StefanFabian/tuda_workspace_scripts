@@ -54,6 +54,13 @@ if __name__ == "__main__":
         "--clean", default=False, action="store_true", help="Clean before building."
     )
     parser.add_argument(
+        "--verbose",
+        "-v",
+        default=False,
+        action="store_true",
+        help="Print verbose output.",
+    )
+    parser.add_argument(
         "--yes",
         "-y",
         default=False,
@@ -87,6 +94,7 @@ if __name__ == "__main__":
                 no_deps=args.no_deps,
                 continue_on_error=args.continue_on_error,
                 build_tests=args.build_tests,
+                verbose=args.verbose,
             )
         )
     except KeyboardInterrupt:
