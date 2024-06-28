@@ -22,7 +22,8 @@ def get_workspace_root(directory=None):
             if colcon_prefix_path is not None
             else None
         )
-    if ".ros2_workspace" in os.listdir(directory):
+    content = os.listdir(directory)
+    if ".tuda_workspace_scripts" in content or ".ros2_workspace" in content:
         return directory
     parent = os.path.dirname(directory)
     return None if parent == directory else get_workspace_root(parent)

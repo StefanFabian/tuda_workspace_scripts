@@ -18,7 +18,7 @@ add_tuda_wss_completion() {
 # @return The path to the workspace root or None if no workspace found
 _tuda_wss_get_workspace_root() {
   if [ $# -eq 1 ]; then
-    if [ -f "$1/.ros2_workspace" ]; then
+    if [ -d "$1/.tuda_workspace_scripts" ] || [ -f "$1/.ros2_workspace" ]; then
       echo "$1"
       return 0
     fi

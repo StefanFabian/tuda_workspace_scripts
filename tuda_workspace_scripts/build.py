@@ -2,6 +2,7 @@ from .config import load_config
 from .print import confirm, print_error, print_info
 from .workspace import *
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -22,27 +23,27 @@ def build_packages(
     build_tests=False,
 ) -> int:
     os.chdir(workspace_root)
-    config = load_config()
     arguments = []
-    build_type = build_type or config.variables.default_build_type
-    if build_type not in ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"]:
-        print_error(f"Unknown build type: {build_type}. Ignoring.")
-        build_type = None
-    if build_type is not None:
-        arguments += ["--cmake-args", f"-DCMAKE_BUILD_TYPE={build_type}"]
     if colcon_override_check is not None and any(packages):
         arguments += ["--allow-overriding"] + packages
     if continue_on_error:
         arguments += ["--continue-on-error"]
-    if config.variables.workspace_install == "symlink":
-        arguments += ["--symlink-install"]
-    elif config.variables.workspace_install == "merge":
-        arguments += ["--merge-install"]
-    arguments += [f"--cmake-args -DBUILD_TESTING={'ON' if build_tests else 'OFF'}"]
+
+    cmake_arguments = []
+    if build_type is not None:
+        cmake_arguments.append(f"-DCMAKE_BUILD_TYPE={build_type}")
+    if build_tests:
+        cmake_arguments.append("-DBUILD_TESTING=ON")
+    if any(cmake_arguments):
+        arguments += ["--cmake-args"] + list(map(lambda x: f"' {shlex.quote(x)}'", cmake_arguments))
 
     if any(packages):
         arguments += ["--packages-up-to"] if not no_deps else ["--packages-select"]
         arguments += packages
+    
+    print_info("Command:")
+    print(f"colcon build {' '.join(arguments)}")
+    print_info(f">>> Running in {workspace_root}")
     command = subprocess.run(
         f'colcon build {" ".join(arguments)}',
         stdout=sys.stdout,
