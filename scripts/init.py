@@ -33,15 +33,15 @@ if __name__ == "__main__":
                 print_error(
                     "This folder is already in a ROS 2 workspace! This is not supported."
                 )
-                exit(1)
+                exit(0 if args.yes else 1)
             # Check that current directory does not contain a workspace
             for root, dirs, files in os.walk("."):
                 if ".tuda_workspace_scripts" in dirs or ".ros2_workspace" in files:
                     print_error(f"This folder contains a workspace root at {root}.")
-                    exit(1)
+                    exit(0 if args.yes else 1)
         elif get_workspace_root(os.getcwd()) not in [os.getcwd(), None]:
             print_error("Reset can only be used in a workspace root directory.")
-            exit(1)
+            exit(0 if args.yes else 1)
 
         print(f"I will mark the current directory {os.getcwd()} as a workspace root.")
         print(
