@@ -1,7 +1,11 @@
 import argparse
 from typing import List
-from argcomplete.completers import ChoicesCompleter, SuppressCompleter
-from argcomplete.finders import CompletionFinder
+from argcomplete.completers import ChoicesCompleter
+try:
+    from argcomplete.completers import SuppressCompleter
+except ImportError:
+    SuppressCompleter = object
+from argcomplete import CompletionFinder
 
 
 class PrefixFilteredChoicesCompleter(ChoicesCompleter):
