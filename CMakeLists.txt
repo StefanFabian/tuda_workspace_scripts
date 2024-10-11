@@ -13,7 +13,7 @@ endif()
 
 ament_python_install_package(${PROJECT_NAME})
 
-install(DIRECTORY docker scripts templates DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
+install(DIRECTORY docker scripts DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
 install(FILES config.yaml DESTINATION share/${PROJECT_NAME})
 
 ament_package()
