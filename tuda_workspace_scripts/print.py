@@ -30,6 +30,10 @@ def print_color(color, message, file=stdout):
     print(f'{color}{message}{Colors.Reset}')
 
 
+def print_header(message, file=stdout):
+    print_color(Colors.LBLUE, f">>> {message}", file)
+
+
 def print_info(message, file=stdout):
     print_color(Colors.Info, message, file)
 
