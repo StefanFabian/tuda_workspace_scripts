@@ -53,6 +53,20 @@ def find_packages_in_directory(directory):
     return [p.name for p in packages]
 
 
+def find_package_containing(path, identification_extensions=None):
+    if identification_extensions is None:
+        identification_extensions = get_package_identification_extensions()
+    while path:
+        try:
+            result = identify(identification_extensions, path)
+            if result:
+                return result.name
+        except IgnoreLocationException:
+            pass
+        path = os.path.dirname(path)
+    return None
+
+
 def get_packages_in_workspace(workspace_path=None):
     """
     Looks for packages in the src folder of a workspace.

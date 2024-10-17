@@ -80,6 +80,9 @@ if __name__ == "__main__":
     if args.this:
         packages = find_packages_in_directory(os.getcwd())
         if len(packages) == 0:
+            package = find_package_containing(os.getcwd())
+            packages = [package] if package else []
+        if len(packages) == 0:
             print_error("No package found in the current directory!")
             exit(1)
 
