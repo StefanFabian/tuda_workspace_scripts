@@ -45,7 +45,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--ros-distro",
-        choices=["foxy", "galactic", "humble", "iron"],
+        choices=["foxy", "galactic", "humble", "iron", "jazzy", "rolling"],
         default=getenv("ROS_DISTRO"),
         help="ROS distro to use for cross-compilation. Defaults to ROS distro on host.",
     )
