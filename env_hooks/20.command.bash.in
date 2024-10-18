@@ -241,7 +241,7 @@ complete -F _tuda_wss_complete tuda_wss
 
 if [ -n "$TUDA_WSS_PREFIX" ] && [ "$TUDA_WSS_PREFIX" != "tuda_wss" ]; then
   alias $TUDA_WSS_PREFIX=tuda_wss
-  complete -F _tuda_wss_complete TUDA_WSS_PREFIX
+  complete -F _tuda_wss_complete $TUDA_WSS_PREFIX
 fi
 
 # Load completions
