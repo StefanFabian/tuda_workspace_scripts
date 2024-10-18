@@ -4,6 +4,20 @@ The TUDA workspace scripts add convenience scripts to manage a workspace and rob
 
 ## Extending
 
+### Custom prefix
+
+If you prefer a different prefix instead of `tuda_wss`, you can set the `TUDA_WSS_PREFIX` environment
+variable before sourcing the workspace containing `tuda_wss`.
+This makes all `tuda_wss` commands also available under the alias specified in `TUDA_WSS_PREFIX`.
+
+Example
+
+```bash
+export TUDA_WSS_PREFIX=hector
+source /path/to/workspace/install/setup.bash
+hector status
+```
+
 ### Add commands
 
 You can add commands either in this repository in the scripts folder or as an overlay in a separate package.
@@ -60,6 +74,10 @@ Provides helpers for printing.
 
 ### workspace
 
-* Locate workspace director using `get_workspace_root`
-* Find packages in a directory / in the workspace
-  * also includes a `PackageChoicesCompleter` for `argcomplete`
+| Command | Description |
+| --- | --- |
+| get_workspace_root |  Locate workspace directory. If a path is passed, will search the path upwards to find the workspace root, otherwise fill first use the current path and fall back to automatic detection. Returns None if not workspace root was found. |
+| find_packages_in_directory | Find all packages contained in the given path recursively and returns their names. |
+| find_package_containing | Find the name of the package that contains the given path or None if the path is not in a package. |
+| get_packages_in_workspace | Finds all packages in the given workspace. If no workspace is given, it automatically determines the workspace. |
+| PackageChoicesCompleter | A choices completer for argcomplete offering the packages in a given path for completion. |
