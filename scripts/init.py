@@ -13,8 +13,8 @@ def mark_workspace(path: str | Path):
     Mark a directory as a workspace root.
     This method can also be used on an existing workspace root without issue.
     """
-    # Create marker and config directory .tuda_workspace_scripts
-    os.makedirs(os.path.join(path, ".tuda_workspace_scripts"), exist_ok=True)
+    # Create marker and config directory .config
+    os.makedirs(os.path.join(path, ".config"), exist_ok=True)
     # Create marker file .ros2_workspace
     Path(os.path.join(path, ".ros2_workspace")).touch()
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
             exit(1)
         # Check that current directory does not contain a workspace
         for root, dirs, files in os.walk("."):
-            if ".tuda_workspace_scripts" in dirs or ".ros2_workspace" in files:
+            if ".ros2_workspace" in files:
                 print_error(f"This folder contains a workspace root at {root}.")
                 exit(1)
 

@@ -23,7 +23,7 @@ def get_workspace_root(directory=None):
             else None
         )
     content = os.listdir(directory)
-    if ".tuda_workspace_scripts" in content or ".ros2_workspace" in content:
+    if ".ros2_workspace" in content:
         return directory
     parent = os.path.dirname(directory)
     return None if parent == directory else get_workspace_root(parent)

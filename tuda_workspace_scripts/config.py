@@ -5,12 +5,12 @@ from typing import Any, Iterator
 import yaml
 
 # Use the environment variable TUDA_WSS_CONFIG to specify a config file.
-# If not specified, default to WORKSPACE_ROOT/.tuda_workspace_scripts/config.yaml
+# If not specified, default to WORKSPACE_ROOT/.config/tuda_workspace_scripts.yaml
 CONFIG_FILE_PATH = os.getenv("TUDA_WSS_CONFIG", None)
 if CONFIG_FILE_PATH is None:
     CONFIG_FILE_PATH = get_workspace_root()
     if CONFIG_FILE_PATH is not None:
-        CONFIG_FILE_PATH += "/.tuda_workspace_scripts/config.yaml"
+        CONFIG_FILE_PATH += "/.config/tuda_workspace_scripts.yaml"
 
 
 class Variable:
