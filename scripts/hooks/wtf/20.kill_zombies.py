@@ -12,8 +12,10 @@ def fix() -> bool:
     if len(gz_processes) == 0:
         print_info("No zombies found.")
         return False
-    if any(["-s" in p.info["cmdline"][0] for p in gz_processes]):
-        print_info("Found gazebo server. Assuming it is not a zombie.")
+    has_server = any(["-s" in p.info["cmdline"][0] for p in gz_processes])
+    has_gui = any(["-g" in p.info["cmdline"][0] for p in gz_processes])
+    if has_server and has_gui:
+        print_info("Found gazebo server and gui. Assuming they are not zombies.")
         return False
     print_error("Found gazebo zombies.")
     if not confirm("Kill them?"):
