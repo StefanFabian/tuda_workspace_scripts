@@ -2,15 +2,12 @@
 
 if _TMP_TARGET_DIR=$(_tuda_wss_get_workspace_root); then
   if [ $# -gt 0 ]; then
-    # Unfortunately colcon doesn't return non-zero exit code if package name is not found but only prints a warning,
-    # hence, we catch that.
-    _TMP_COLCON_ERROR=$(colcon list --base-paths "$_TMP_TARGET_DIR" --packages-select $1 --paths-only 2>&1 >/dev/null)
-    if [ ! -z "$_TMP_COLCON_ERROR" ]; then
+    _TMP_TARGET_DIR=$(python3 $TUDA_WSS_BASE_SCRIPTS/helpers/get_package_path.py $1)
+    if [ -z "$_TMP_TARGET_DIR" ]; then
       echo "[ERROR] Package '$1' not found." >&2
+      unset _TMP_TARGET_DIR
       return 1
     fi
-    _TMP_TARGET_DIR=$(colcon list --base-paths "$_TMP_TARGET_DIR" --packages-select $1 --paths-only 2>/dev/null)
-    unset _TMP_COLCON_ERROR
   elif [ -d "$_TMP_TARGET_DIR/src" ]; then
     _TMP_TARGET_DIR="$_TMP_TARGET_DIR/src"
   fi

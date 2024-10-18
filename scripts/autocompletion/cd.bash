@@ -5,7 +5,7 @@ function _tudawss_cd_complete() {
   if [ ${#COMP_WORDS[@]} -gt 3 ]; then
     return 0
   fi
-  COMPREPLY=( $( compgen -W "$(colcon list --base-paths $(_tuda_wss_get_workspace_root) --names-only)" -- "$(_get_cword)" ) )
+  COMPREPLY=( $( compgen -W "$(python3 $TUDA_WSS_BASE_SCRIPTS/helpers/get_package_names_in_workspace.py)" -- "$(_get_cword)" ) )
   return 0
 }
 

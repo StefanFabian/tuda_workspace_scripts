@@ -80,6 +80,39 @@ def get_packages_in_workspace(workspace_path=None):
     return find_packages_in_directory(os.path.join(workspace_path, "src"))
 
 
+def get_package_path(package_name, workspace_path=None):
+    """
+    :param package_name: The name of the package to find.
+    :param workspace_path: Path to the workspace root (The parent directory of the src folder).
+        If None will use get_workspace_root() to try to find it.
+    :return: The path to the package or None if not found.
+    """
+    if workspace_path is None:
+        workspace_path = get_workspace_root()
+        if workspace_path is None:
+            return None
+    identification_extensions = get_package_identification_extensions()
+    visited_paths = set()
+    for dirpath, dirnames, _ in os.walk(workspace_path, followlinks=True):
+        real_dirpath = os.path.realpath(dirpath)
+        if real_dirpath in visited_paths:
+            del dirnames[:]
+            continue
+        visited_paths.add(real_dirpath)
+        try:
+            result = identify(identification_extensions, dirpath)
+        except IgnoreLocationException:
+            del dirnames[:]
+            continue
+        if result:
+            if result.name == package_name:
+                return dirpath
+            del dirnames[:]
+            continue
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+    return None
+
+
 def get_ament_prefix_path_without_packages(packages):
     ament_prefix_path = os.environ.get("AMENT_PREFIX_PATH", None)
     if ament_prefix_path is None:
