@@ -75,17 +75,28 @@ tuda_wss() {
   done
 
   if [[ "$command" == "build" ]]; then
+    if [ ! -z "$_TUDA_WSS_BUILD_RETRY" ]; then
+      echo -e "\033[0;31mFailed to build workspace scripts\033[0m"
+      return 1
+    fi
     echo -e "\033[1;34m>>> Workspace is clean, building workspace scripts first\033[0m"
     _TMP_PWD=$PWD
     if ! cd "$(_tuda_wss_get_workspace_root)"; then
       echo -e "\033[0;31mFailed to locate workspace root\033[0m"
+      return 1
     fi
     colcon build --packages-select tuda_workspace_scripts
+    source install/setup.bash
     cd "$_TMP_PWD"
     unset _TMP_PWD
+    _TUDA_WSS_BUILD_RETRY=1
     echo -e "\033[1;34m>>> Running build command again\033[0m"
-    tuda_wss build "$@"
-    return $?
+    if ! tuda_wss build "$@"; then 
+      unset _TUDA_WSS_BUILD_RETRY
+      return 1
+    fi
+    unset _TUDA_WSS_BUILD_RETRY
+    return 0
   fi
 
   echo -e "\033[0;31mUnknown workspace script command: $command\033[0m"
