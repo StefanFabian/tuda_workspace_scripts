@@ -7,7 +7,7 @@ from colcon_core.package_identification import identify, IgnoreLocationException
 import os
 
 
-def get_workspace_root(directory=None):
+def get_workspace_root(directory=None) -> str | None:
     """
     :param directory: Directory from which to search the workspace root. If None will try to find from current and if that fails from the COLCON_PREFIX_PATH
     :return: The path to the workspace root or None if no workspace found.
@@ -29,7 +29,11 @@ def get_workspace_root(directory=None):
     return None if parent == directory else get_workspace_root(parent)
 
 
-def find_packages_in_directory(directory):
+def find_packages_in_directory(directory) -> list[str]:
+    """
+    :param directory: The directory to search for packages.
+    :return: A list of package names found in the directory.
+    """
     packages = []
     identification_extensions = get_package_identification_extensions()
     visited_paths = set()
@@ -54,6 +58,11 @@ def find_packages_in_directory(directory):
 
 
 def find_package_containing(path, identification_extensions=None):
+    """
+    :param path: The path to search for a package.
+    :param identification_extensions: The identification extensions to use. If None will use get_package_identification_extensions().
+    :return: The name of the package containing the path or None if path is not in a package.
+    """
     if identification_extensions is None:
         identification_extensions = get_package_identification_extensions()
     while path:

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 from tuda_workspace_scripts.build import build_packages
-from tuda_workspace_scripts.print import print_error
+from tuda_workspace_scripts.print import print_error, print_workspace_error
 from tuda_workspace_scripts.workspace import *
 from tuda_workspace_scripts.completion import *
 from _clean import clean_packages
 import argcomplete
 import argparse
 import os
-import sys
 
 
 if __name__ == "__main__":
@@ -73,8 +72,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if workspace_root is None:
-        print_error("You are not in a workspace!")
-        exit()
+        print_workspace_error()
+        exit(1)
 
     packages = args.packages or []
     if args.this:
@@ -87,9 +86,9 @@ if __name__ == "__main__":
             exit(1)
 
     if args.clean and not clean_packages(workspace_root, packages, force=args.yes):
-        sys.exit(1)
+        exit(1)
     try:
-        sys.exit(
+        exit(
             build_packages(
                 workspace_root,
                 packages,
@@ -102,4 +101,4 @@ if __name__ == "__main__":
         )
     except KeyboardInterrupt:
         print_error("Build interrupted!")
-        sys.exit(1)
+        exit(1)

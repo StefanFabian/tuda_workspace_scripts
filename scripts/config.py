@@ -9,7 +9,8 @@ from tuda_workspace_scripts.config import (
     VariableChoicesCompleter,
     ValueChoicesCompleter,
 )
-from tuda_workspace_scripts.print import TableOutput
+from tuda_workspace_scripts.print import TableOutput, print_workspace_error
+from tuda_workspace_scripts.workspace import get_workspace_root
 
 
 if __name__ == "__main__":
@@ -36,6 +37,11 @@ if __name__ == "__main__":
     ).completer = ValueChoicesCompleter()
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
+
+    if get_workspace_root() is None:
+        print_workspace_error()
+        exit(1)
+
     if args.command == "list":
         vars = load_variables()
         table = TableOutput(["Name", "Default", "Description"])

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-from tuda_workspace_scripts.build import build_packages
-from tuda_workspace_scripts.print import print_error, print_info
-from tuda_workspace_scripts.workspace import find_packages_in_directory, get_workspace_root, PackageChoicesCompleter
+from tuda_workspace_scripts.build import build_packages, clean_packages
+from tuda_workspace_scripts.print import *
+from tuda_workspace_scripts.workspace import *
 import argcomplete
 import argparse
 import os
 import subprocess
 import sys
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     workspace_root = get_workspace_root()
     parser = argparse.ArgumentParser()
     packages_arg = parser.add_argument('packages', nargs='*', help='If specified only these packages are built.')
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if workspace_root is None:
-        print_error('You are not in a workspace!')
+        print_workspace_error()
         exit()
 
     packages = args.packages or []

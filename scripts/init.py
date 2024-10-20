@@ -3,7 +3,6 @@ from ament_index_python.packages import get_package_share_path
 import argparse
 import os
 from pathlib import Path
-import shutil
 from tuda_workspace_scripts.print import *
 from tuda_workspace_scripts.workspace import get_workspace_root
 

@@ -18,9 +18,9 @@ LCYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NOCOLOR='\033[0m'
 
-echoc() {
+_echoc() {
     if [ $# -lt 2 ]; then
-      echo "echoc usage: echoc <COLOR> <TEXT>"
+      echo "echoc usage: _echoc <COLOR> <TEXT>"
       return
     fi
 
@@ -29,22 +29,22 @@ echoc() {
     echo -e "${*}${NOCOLOR}"
 }
 
-echo_error() {
-    echoc $RED "$@"
+_echo_error() {
+    _echoc $RED "$@"
 }
 
-echo_warn() {
-    echoc $YELLOW "$@"
+_echo_warn() {
+    _echoc $YELLOW "$@"
 }
 
-echo_debug() {
-    echoc $GREEN "$@"
+_echo_debug() {
+    _echoc $GREEN "$@"
 }
 
-echo_info() {
-    echoc $LGREEN "$@"
+_echo_info() {
+    _echoc $LGREEN "$@"
 }
 
-echo_note() {
-    echoc $LBLUE "$@"
+_echo_note() {
+    _echoc $LBLUE "$@"
 }

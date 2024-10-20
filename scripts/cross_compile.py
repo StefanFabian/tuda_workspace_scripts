@@ -2,6 +2,7 @@
 import argcomplete
 import argparse
 from tuda_workspace_scripts.build import cross_compile
+from tuda_workspace_scripts.print import print_workspace_error
 from tuda_workspace_scripts.workspace import PackageChoicesCompleter, get_workspace_root
 from os import getenv
 import os.path
@@ -66,6 +67,11 @@ if __name__ == "__main__":
     package_arg.completer = PackageChoicesCompleter(get_workspace_root())
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
+
+    if workspace_path is None:
+        print_workspace_error()
+        exit(1)
+
     if not cross_compile(
         packages=args.PACKAGE,
         ros_distro=args.ros_distro,
