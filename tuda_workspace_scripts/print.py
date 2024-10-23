@@ -24,11 +24,18 @@ class Colors:
     Warning = "\033[0;33m"
     Info = "\033[0;34m"
     Success = "\033[0;32m"
-    Reset = "\033[0;39m"
+    RESET = "\033[0;39m"
+
+
+class Style:
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    REVERSE = "\033[7m"
+    RESET = "\033[0m"
 
 
 def print_color(color, message, file=stdout):
-    print(f"{color}{message}{Colors.Reset}")
+    print(f"{color}{message}{Colors.RESET}")
 
 
 def print_header(message, file=stdout):
