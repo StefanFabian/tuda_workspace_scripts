@@ -39,6 +39,10 @@ def print_info(message, file=stdout):
     print_color(Colors.Info, message, file)
 
 
+def print_success(message, file=stdout):
+    print_color(Colors.Success, message, file)
+
+
 def print_warn(message, file=stdout):
     print_color(Colors.Warning, message, file)
 
