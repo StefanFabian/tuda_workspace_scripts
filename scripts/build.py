@@ -79,6 +79,7 @@ if __name__ == "__main__":
     if args.this:
         packages = find_packages_in_directory(os.getcwd())
         if len(packages) == 0:
+            # No packages in the current folder but maybe the current folder is in a package
             package = find_package_containing(os.getcwd())
             packages = [package] if package else []
         if len(packages) == 0:
