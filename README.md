@@ -31,11 +31,14 @@ In each case the additional arguments are forwarded to the command.
 
 ### Overlay
 
-To create an overlay, create a new package with a scripts folder, create an env-hook-in-file `setup.dsv.in` with the following content:
+To create an overlay, create a new package with a scripts folder, create an env-hook-in-file `20.setup.dsv.in` with the following content:
 
 ```dsv
 prepend-non-duplicate;TUDA_WSS_SCRIPTS;share/@PROJECT_NAME@/scripts
 ```
+
+> [!NOTE]
+> The number should be between 10 and 50 if you want it to be sourced before the command is registered or greater than 50 and smaller than 80 if it should be sourced after.
 
 In your `CMakeLists.txt` install the folder and file as follows:
 
@@ -43,10 +46,10 @@ In your `CMakeLists.txt` install the folder and file as follows:
 if (WIN32)
   message(FATAL_ERROR "Windows is currently not supported! Feel free to add support :)")
 else()
-  ament_environment_hooks(setup.dsv.in)
+  ament_environment_hooks(20.setup.dsv.in)
 endif()
 
-install(DIRECTORY docker scripts DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
+install(DIRECTORY scripts DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
 ```
 
 ## Python Library
