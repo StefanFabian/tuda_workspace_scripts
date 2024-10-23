@@ -25,7 +25,7 @@ def print_changes(path):
         # Need to reverse using R=True, otherwise we get the diff from tree to HEAD meaning deleted files are added and vice versa
         changes += repo.index.diff("HEAD", R=True)
     except git.BadName as e:
-        print_error(f"{path} has no HEAD!\nException: {repr(e.message)}")
+        pass # Repo has no HEAD which means it probably also has no branches yet and was just initialized
 
     # Check branches for uncommited commits and pure local branches
     uncommited_commits = []
@@ -56,6 +56,8 @@ def print_changes(path):
         or any(changes)
     ):
         print_info(path)
+        if len(repo.branches) == 0:
+            print_color(Colors.LRED, "  No branches configured yet.")
         for branch in uncommited_commits:
             print_color(Colors.RED, "  Unpushed commits on branch {}!".format(branch))
         for branch in local_branches:
