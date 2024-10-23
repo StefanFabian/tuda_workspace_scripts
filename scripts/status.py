@@ -55,9 +55,9 @@ def print_changes(path):
         or any(local_branches)
         or any(changes)
     ):
-        print_info(path)
+        print_info(f"{path} {Colors.LPURPLE}({repo.head.ref.name})")
         if len(repo.branches) == 0:
-            print_color(Colors.LRED, "  No branches configured yet.")
+            print_color(Colors.LRED, "  No branches configured upstream.")
         for branch in uncommited_commits:
             print_color(Colors.RED, "  Unpushed commits on branch {}!".format(branch))
         for branch in local_branches:
