@@ -17,30 +17,24 @@ def load_method_from_file(file_path: str, method_name: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--continue-on-fix",
-        default=False,
-        action="store_true",
-        help="Continue running fixes even if one fix was successful.",
-    )
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     if get_workspace_root() is None:
         print_workspace_error()
         return 1
 
-    continue_on_fix = args.continue_on_fix
-    fixed_something = False
+    count_fixes = 0
+    hooks = list(sorted(get_hooks_for_command("wtf")))
     # Collect all wtf scripts in hooks/wtf folders of TUDA_WSS_SCRIPTS environment variable
-    for script in sorted(get_hooks_for_command("wtf")):
-        if fixed_something and not continue_on_fix:
-            if not confirm(f"This might have fixed your issue! Continue anyway?"):
-                return 0
-            continue_on_fix = True
+    for script in hooks:
         # Load script and run fix command and obtain result
         fix = load_method_from_file(script, "fix")
         if fix():
-            fixed_something = True
+            count_fixes += 1
+    if count_fixes > 0:
+        print_success(f"{len(hooks)} checks have fixed {count_fixes} potential issues.")
+    else:
+        print_success(f"{len(hooks)} checks have found no potential issues.")
 
 
 if __name__ == "__main__":
