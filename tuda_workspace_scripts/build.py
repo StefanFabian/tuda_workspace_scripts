@@ -17,17 +17,24 @@ except ImportError:
 
 
 def build_packages(
-    workspace_root,
-    packages=None,
-    env=None,
-    build_type=None,
-    no_deps=False,
-    continue_on_error=False,
-    build_tests=False,
-    verbose=False,
+    workspace_root: str,
+    packages: list[str] | None = None,
+    env: dict | None = None,
+    build_type: str | None = None,
+    no_deps: bool = False,
+    continue_on_error: bool = False,
+    build_tests: bool = False,
+    mixin: list[str] = None,
+    verbose: bool = False,
+    build_base: str | None = None,
+    install_base: str | None = None,
 ) -> int:
     os.chdir(workspace_root)
     arguments = []
+    if build_base is not None:
+        arguments += ["--build-base", build_base]
+    if install_base is not None:
+        arguments += ["--install-base", install_base]
     if colcon_override_check is not None and any(packages):
         arguments += ["--allow-overriding"] + packages
     if continue_on_error:
@@ -42,6 +49,8 @@ def build_packages(
         arguments += ["--cmake-args"] + list(
             map(lambda x: f"' {shlex.quote(x)}'", cmake_arguments)
         )
+    if mixin and len(mixin) > 0:
+        arguments += ["--mixin"] + mixin
 
     if any(packages):
         arguments += ["--packages-up-to"] if not no_deps else ["--packages-select"]
