@@ -52,6 +52,21 @@ endif()
 install(DIRECTORY scripts DESTINATION share/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
 ```
 
+## Commands
+
+All commands support autocompletion and have a `--help` option listing available options.
+
+| Command |  Description |
+| --- | --- |
+| build | Build all (or the passed) packages in the workspace. Will automatically build in the workspace root and can be run form anywhere. Use `--this` to build the packages in the current directory. |
+| cd PACKAGE | Go to the directory of the given package. |
+| clean | Clean all (or the passed) packages. |
+| cross_compile | Cross compiles a package for a given target architecture using the `--platform` argument. |
+| init | Initializes the current directory as workspace root. Has to be run once per workspace. |
+| status | Prints any changes in the git repositories in the workspace. |
+| test | Builds and runs the tests for all (or the passed) packages. |
+| wtf | Runs some common error checks and fixes in your environment. E.g. if gazebo keeps zombies alive. |
+
 ## Python Library
 
 In your commands, you can use the `tuda_workspace_scripts` python module which contains a `print` and a `workspace` submodule.
