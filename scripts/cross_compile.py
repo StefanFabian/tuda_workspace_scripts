@@ -72,16 +72,19 @@ if __name__ == "__main__":
         print_workspace_error()
         exit(1)
 
-    if not cross_compile(
-        packages=args.PACKAGE,
-        ros_distro=args.ros_distro,
-        platform=args.platform,
-        clean=args.clean,
-        no_cache=args.no_cache,
-        rebuild=args.rebuild,
-        output_base_dir=args.output_base_dir,
-        output_dir=args.output_dir,
-        base_image=args.base_image,
-        pull=args.pull,
-    ):
-        exit(1)
+    try:
+        if not cross_compile(
+            packages=args.PACKAGE,
+            ros_distro=args.ros_distro,
+            platform=args.platform,
+            clean=args.clean,
+            no_cache=args.no_cache,
+            rebuild=args.rebuild,
+            output_base_dir=args.output_base_dir,
+            output_dir=args.output_dir,
+            base_image=args.base_image,
+            pull=args.pull,
+        ):
+            exit(1)
+    except KeyboardInterrupt:
+        pass
