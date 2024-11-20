@@ -7,14 +7,22 @@ import argcomplete
 import argparse
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     workspace_root = get_workspace_root()
-    parser = argparse.ArgumentParser()
-    packages_arg = parser.add_argument('packages', nargs='*', help='If specified only these packages are cleaned.')
+    parser = argparse.ArgumentParser(
+        prog="clean", description="Clean the workspace or specific packages."
+    )
+    packages_arg = parser.add_argument(
+        "packages", nargs="*", help="If specified only these packages are cleaned."
+    )
     packages_arg.completer = PackageChoicesCompleter(workspace_root)
-    parser.add_argument('--force', default=False, action='store_true')
-    parser.add_argument('--logs', default=False, action='store_true')
+    parser.add_argument("--force", default=False, action="store_true")
+    parser.add_argument(
+        "--logs",
+        default=False,
+        action="store_true",
+        help="If specified only the logs are cleaned",
+    )
 
     argcomplete.autocomplete(parser)
     args = parser.parse_args()

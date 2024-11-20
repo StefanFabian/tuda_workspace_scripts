@@ -4,6 +4,13 @@ _SCRIPT_DIR=$(dirname "$BASH_SOURCE[0]")
 
 if _TMP_TARGET_DIR=$(_tuda_wss_get_workspace_root); then
   if [ $# -gt 0 ]; then
+    for arg in "$@"; do
+      if [ "$arg" = "--help" ] || [ "$arg" = "-h" ]; then
+        echo "Usage: cd.sh [PACKAGE_NAME]"
+        echo "Change directory to the workspace root or to the specified package."
+        return 0
+      fi
+    done
     _TMP_TARGET_DIR=$(python3 $TUDA_WSS_BASE_SCRIPTS/helpers/get_package_path.py $1)
     if [ -z "$_TMP_TARGET_DIR" ]; then
       _echo_error "[ERROR] Package '$1' not found." >&2
