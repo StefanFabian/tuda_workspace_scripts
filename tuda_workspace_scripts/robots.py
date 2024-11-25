@@ -44,10 +44,10 @@ class RemotePC:
         Get the shell command to execute the given command on this remote PC.
         @raises ValueError if the command is not found.
         """
-        if command_name == "ssh-copy-id":
-            return f"ssh-copy-id {self.user}@{self.hostname}"
         for cmd in self.commands:
             if cmd.name == command_name:
+                if command_name == "ssh-copy-id":
+                    return f"ssh-copy-id {self.user}@{self.hostname}"
                 return f"ssh -t {self.user}@{self.hostname} '{cmd.get_command().replace("'", "\\'")}'"
         raise ValueError(f"Command {command_name} not found in remote PC {self.name}")
 
@@ -79,21 +79,28 @@ DEFAULT_COMMANDS = [
 
 def _load_robot_from_yaml(name, config: dict[str, Any]) -> Robot:
     remote_pcs = dict()
-    shared_commands = set(DEFAULT_COMMANDS)
+    shared_commands = dict([(cmd.name, cmd) for cmd in DEFAULT_COMMANDS])
     if "commands" in config:
         for command_name in config["commands"]:
-            shared_commands.add(Command(command_name, config["commands"][command_name]))
+            # Default commands can be disabled by setting them to None.
+            if config["commands"][command_name] is None:
+                del shared_commands[command_name]
+                continue
+            shared_commands[command_name] = Command(command_name, config["commands"][command_name])
     for pc_name in config["remote_pcs"]:
         pc_config = config["remote_pcs"][pc_name]
         if "user" not in pc_config:
             raise ValueError(f"User not specified for remote PC {pc_name}")
         user = pc_config["user"]
         hostname = pc_config["hostname"] if "hostname" in pc_config else pc_name
-        commands = set(shared_commands)
+        commands = dict(shared_commands)
         if "commands" in pc_config:
             for command_name in pc_config["commands"]:
-                commands.add(Command(command_name, pc_config["commands"][command_name]))
-        remote_pcs[pc_name] = RemotePC(pc_name, hostname, user, list(commands))
+                if pc_config["commands"][command_name] is None:
+                    del commands[command_name]
+                    continue
+                commands[command_name] = Command(command_name, pc_config["commands"][command_name])
+        remote_pcs[pc_name] = RemotePC(pc_name, hostname, user, list(commands.values()))
     return Robot(config["name"] if "name" in config else name, remote_pcs)
 
 
