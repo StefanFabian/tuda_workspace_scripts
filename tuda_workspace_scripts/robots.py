@@ -48,6 +48,8 @@ class RemotePC:
             if cmd.name == command_name:
                 if command_name == "ssh-copy-id":
                     return f"ssh-copy-id {self.user}@{self.hostname}"
+                if command_name == "ssh":
+                    return f"ssh {self.user}@{self.hostname}"
                 return f"ssh -t {self.user}@{self.hostname} '{cmd.get_command().replace("'", "\\'")}'"
         raise ValueError(f"Command {command_name} not found in remote PC {self.name}")
 
