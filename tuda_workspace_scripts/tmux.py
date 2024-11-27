@@ -17,28 +17,28 @@ def launch_tmux(
     @param keep_open_duration: Time in seconds to keep each pane or window open after the\
         command completes. Defaults to 5. Set to None to keep open indefinitely.
     """
+    command_names = list(commands.keys()) if isinstance(commands, dict) else commands
+    shell_commands = commands if isinstance(commands, list) else list(commands.values())
+
     server = libtmux.Server()
     session = server.new_session(session_name=session_name)
     window = session.attached_window
     panes = [window.attached_pane]
     if use_windows:
-        window.name = list(commands.keys())[0] if commands is dict else commands[0]
+        window.rename_window(command_names[0])
         for i in range(1, len(commands)):
-            name = list(commands.keys())[i] if commands is dict else commands[i]
-            panes.append(session.new_window(window_name=name).attached_pane)
+            panes.append(session.new_window(window_name=command_names[i]).attached_pane)
     else:
         # Arrange panes in a tiled layout (grid)
-        window.window_layout = "tiled"
-        count_commands = len(commands) if isinstance(commands, list) else len(commands.keys())
-        for i in range(count_commands - 1):
+        for i in range(1, len(shell_commands)):
             panes.append(window.split_window())
+            window.select_layout("tiled")
 
-    
-    shell_commands = commands if isinstance(commands, list) else list(commands.values())
     for i, command in enumerate(shell_commands):
         if keep_open_duration is not None:
             command = f"{command}; sleep {keep_open_duration}; exit"
-        panes[i].select_pane()
+        panes[i].window.select()
+        panes[i].select()
         panes[i].send_keys(command)
     try:
         session.attach()
