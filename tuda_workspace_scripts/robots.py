@@ -37,7 +37,7 @@ class RemotePC:
         for cmd in self.commands:
             if cmd.name == name:
                 return True
-        return
+        return False
 
     def get_command(self, command_name: str) -> str:
         """
