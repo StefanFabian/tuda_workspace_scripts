@@ -51,7 +51,7 @@ class RemotePC:
         Get the shell command to execute the given command on this remote PC.
         @raises ValueError if the command is not found.
         """
-        base_vars = {"hostname": self.hostname, "user": self.user}
+        base_vars = {"hostname": self.hostname, "pc_name": self.name, "user": self.user}
         base_vars.update(vars)
         for cmd in self.commands:
             if cmd.name == command_name:
