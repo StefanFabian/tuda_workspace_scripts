@@ -84,7 +84,7 @@ def main():
 
     if remote_pc == "all":
         try:
-            commands = dict(robot.get_commands(command_name))
+            commands = dict(robot.render_commands(command_name))
         except ValueError:
             print_error(
                 f"Command {command_name} not found for any PC on robot {robot_name}!"
@@ -96,8 +96,16 @@ def main():
                 f"Command {command_name} not found for PC {remote_pc} on robot {robot_name}!"
             )
             exit(1)
-        commands = [robot.remote_pcs[remote_pc].get_command(command_name)]
-    launch_tmux(commands, use_windows=args.use_windows, keep_open_duration=args.keep_open_duration)
+        commands = [
+            robot.remote_pcs[remote_pc].render_command(
+                command_name, {"robot": robot_name}
+            )
+        ]
+    launch_tmux(
+        commands,
+        use_windows=args.use_windows,
+        keep_open_duration=args.keep_open_duration,
+    )
 
 
 if __name__ == "__main__":

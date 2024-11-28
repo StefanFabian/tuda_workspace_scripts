@@ -1,6 +1,6 @@
 from .workspace import get_workspace_root
 import os
-import shutil
+from jinja2 import Template
 from typing import Any, Generator
 import yaml
 
@@ -17,13 +17,20 @@ if ROBOTS_CONFIG_FILE_PATH is None:
 __CACHE = {}
 
 
+class RenderedCommand:
+    def __init__(self, command: str, delegate_to: str | None):
+        self.command = command
+        self.delegate_to = delegate_to
+
+
 class Command:
-    def __init__(self, name: str, command: str):
+    def __init__(self, name: str, command: str, delegate_to: str | None = None):
         self.name = name
         self.command = command
+        self.delegate_to = delegate_to
 
-    def get_command(self) -> str:
-        return self.command
+    def render_command(self, vars: dict) -> RenderedCommand:
+        return RenderedCommand(Template(self.command).render(vars), self.delegate_to)
 
 
 class RemotePC:
@@ -39,18 +46,17 @@ class RemotePC:
                 return True
         return False
 
-    def get_command(self, command_name: str) -> str:
+    def render_command(self, command_name: str, vars: dict = {}) -> RenderedCommand:
         """
         Get the shell command to execute the given command on this remote PC.
         @raises ValueError if the command is not found.
         """
+        base_vars = {"hostname": self.hostname, "user": self.user}
+        base_vars.update(vars)
         for cmd in self.commands:
             if cmd.name == command_name:
-                if command_name == "ssh-copy-id":
-                    return f"ssh-copy-id {self.user}@{self.hostname}"
-                if command_name == "ssh":
-                    return f"ssh {self.user}@{self.hostname}"
-                return f"ssh -t {self.user}@{self.hostname} '{cmd.get_command().replace("'", "\\'")}'"
+                return cmd.render_command(base_vars)
+
         raise ValueError(f"Command {command_name} not found in remote PC {self.name}")
 
 
@@ -59,24 +65,70 @@ class Robot:
         self.name = name
         self.remote_pcs = remote_pcs
 
-    def get_commands(self, command_name: str) -> Generator[tuple[str, str], None, None]:
+    def _get_shell_command(self, pc: RemotePC, command: RenderedCommand) -> RemotePC:
+        if command.delegate_to == "localhost" or command.delegate_to == "127.0.0.1":
+            return command.command
+        target = pc
+        if command.delegate_to is not None:
+            if command.delegate_to not in self.remote_pcs:
+                raise ValueError(
+                    f"Remote PC {command.delegate_to} not found in robot {self.name}"
+                )
+            target = self.remote_pcs[command.delegate_to]
+        return f"ssh -t {target.user}@{target.hostname} '{command.command.replace("'", "\\'")}'"
+
+    def render_commands(
+        self, command_name: str, vars: dict = {}
+    ) -> Generator[tuple[str, str], None, None]:
         """
         Get the shell commands to execute the given command on all remote PCs that support it.
         @raises ValueError if the command is not found in any remote PC.
         """
         if not any([pc.has_command(command_name) for pc in self.remote_pcs.values()]):
             raise ValueError(f"Command {command_name} not found in any remote PC")
+        base_vars = {"robot": self.name}
+        base_vars.update(vars)
         for pc in self.remote_pcs.values():
             if pc.has_command(command_name):
-                yield (pc.name, pc.get_command(command_name))
+                rendered_command = pc.render_command(command_name, base_vars)
+                shell_command = self._get_shell_command(pc, rendered_command)
+                yield (pc.name, shell_command)
 
 
 DEFAULT_COMMANDS = [
-    Command("ssh", ""),
-    Command("ssh-copy-id", ""),
+    Command("ssh", "ssh {{user}}@{{hostname}}", delegate_to="localhost"),
+    Command(
+        "ssh-copy-id", "ssh-copy-id {{user}}@{{hostname}}", delegate_to="localhost"
+    ),
     Command("reboot", "sudo reboot now"),
     Command("shutdown", "sudo shutdown now"),
 ]
+
+
+def _load_command_from_yaml(name: str, config: dict[str, Any] | str) -> Command:
+    if isinstance(config, str):
+        return Command(name, config)
+    delegate_to = None
+    if "delegate_to" in config:
+        delegate_to = config["delegate_to"]
+    return Command(name, config["command"], delegate_to)
+
+
+def _load_pc_from_yaml(
+    pc_name: str, config: dict[str, Any], shared_commands: dict
+) -> RemotePC:
+    if "user" not in config:
+        raise ValueError(f"User not specified for remote PC {pc_name}")
+    user = config["user"]
+    hostname = config["hostname"] if "hostname" in config else pc_name
+    commands = dict(shared_commands)
+    if "commands" in config:
+        for name in config["commands"]:
+            if config["commands"][name] is None:
+                del commands[name]
+                continue
+            commands[name] = _load_command_from_yaml(name, config["commands"][name])
+    return RemotePC(pc_name, hostname, user, list(commands.values()))
 
 
 def _load_robot_from_yaml(name, config: dict[str, Any]) -> Robot:
@@ -88,21 +140,12 @@ def _load_robot_from_yaml(name, config: dict[str, Any]) -> Robot:
             if config["commands"][command_name] is None:
                 del shared_commands[command_name]
                 continue
-            shared_commands[command_name] = Command(command_name, config["commands"][command_name])
+            shared_commands[command_name] = Command(
+                command_name, config["commands"][command_name]
+            )
     for pc_name in config["remote_pcs"]:
         pc_config = config["remote_pcs"][pc_name]
-        if "user" not in pc_config:
-            raise ValueError(f"User not specified for remote PC {pc_name}")
-        user = pc_config["user"]
-        hostname = pc_config["hostname"] if "hostname" in pc_config else pc_name
-        commands = dict(shared_commands)
-        if "commands" in pc_config:
-            for command_name in pc_config["commands"]:
-                if pc_config["commands"][command_name] is None:
-                    del commands[command_name]
-                    continue
-                commands[command_name] = Command(command_name, pc_config["commands"][command_name])
-        remote_pcs[pc_name] = RemotePC(pc_name, hostname, user, list(commands.values()))
+        remote_pcs[pc_name] = _load_pc_from_yaml(pc_name, pc_config, shared_commands)
     return Robot(config["name"] if "name" in config else name, remote_pcs)
 
 
