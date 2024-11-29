@@ -34,10 +34,18 @@ class Command:
 
 
 class RemotePC:
-    def __init__(self, name: str, hostname: str, user: str, commands: list[Command]):
+    def __init__(
+        self,
+        name: str,
+        hostname: str,
+        user: str,
+        commands: list[Command],
+        port: int = 22,
+    ):
         self.name = name
         self.hostname = hostname
         self.user = user
+        self.port = port
         self.commands = commands
 
     def has_command(self, name: str) -> bool:
@@ -51,7 +59,12 @@ class RemotePC:
         Get the shell command to execute the given command on this remote PC.
         @raises ValueError if the command is not found.
         """
-        base_vars = {"hostname": self.hostname, "pc_name": self.name, "user": self.user}
+        base_vars = {
+            "hostname": self.hostname,
+            "pc_name": self.name,
+            "user": self.user,
+            "port": self.port,
+        }
         base_vars.update(vars)
         for cmd in self.commands:
             if cmd.name == command_name:
@@ -75,7 +88,7 @@ class Robot:
                     f"Remote PC {command.delegate_to} not found in robot {self.name}"
                 )
             target = self.remote_pcs[command.delegate_to]
-        return f"ssh -t {target.user}@{target.hostname} '{command.command.replace("'", "\\'")}'"
+        return f"ssh -p {target.port} -t {target.user}@{target.hostname} '{command.command.replace("'", "\\'")}'"
 
     def get_shell_command(
         self, pc_name: str, command_name: str, vars: dict = {}
@@ -107,9 +120,9 @@ class Robot:
 
 
 DEFAULT_COMMANDS = [
-    Command("ssh", "ssh {{user}}@{{hostname}}", delegate_to="localhost"),
+    Command("ssh", "ssh -p {{port}} {{user}}@{{hostname}}", delegate_to="localhost"),
     Command(
-        "ssh-copy-id", "ssh-copy-id {{user}}@{{hostname}}", delegate_to="localhost"
+        "ssh-copy-id", "ssh-copy-id -p {{port}} {{user}}@{{hostname}}", delegate_to="localhost"
     ),
     Command("reboot", "sudo reboot now"),
     Command("shutdown", "sudo shutdown now"),
@@ -132,6 +145,7 @@ def _load_pc_from_yaml(
         raise ValueError(f"User not specified for remote PC {pc_name}")
     user = config["user"]
     hostname = config["hostname"] if "hostname" in config else pc_name
+    port = config["port"] if "port" in config else 22
     commands = dict(shared_commands)
     if "commands" in config:
         for name in config["commands"]:
@@ -139,7 +153,9 @@ def _load_pc_from_yaml(
                 del commands[name]
                 continue
             commands[name] = _load_command_from_yaml(name, config["commands"][name])
-    return RemotePC(pc_name, hostname, user, list(commands.values()))
+    return RemotePC(
+        pc_name, hostname, user, port=port, commands=list(commands.values())
+    )
 
 
 def _load_robot_from_yaml(name, config: dict[str, Any]) -> Robot:
