@@ -65,7 +65,7 @@ class Robot:
         self.name = name
         self.remote_pcs = remote_pcs
 
-    def _get_shell_command(self, pc: RemotePC, command: RenderedCommand) -> RemotePC:
+    def _render_shell_command(self, pc: RemotePC, command: RenderedCommand) -> str:
         if command.delegate_to == "localhost" or command.delegate_to == "127.0.0.1":
             return command.command
         target = pc
@@ -77,7 +77,18 @@ class Robot:
             target = self.remote_pcs[command.delegate_to]
         return f"ssh -t {target.user}@{target.hostname} '{command.command.replace("'", "\\'")}'"
 
-    def render_commands(
+    def get_shell_command(
+        self, pc_name: str, command_name: str, vars: dict = {}
+    ) -> str:
+        """
+        Get the shell command to execute the given command on the given remote PC.
+        @raises ValueError if the command is not found in the remote PC.
+        """
+        pc = self.remote_pcs[pc_name]
+        rendered_command = pc.render_command(command_name, vars)
+        return self._render_shell_command(pc, rendered_command)
+
+    def get_shell_commands(
         self, command_name: str, vars: dict = {}
     ) -> Generator[tuple[str, str], None, None]:
         """
@@ -91,7 +102,7 @@ class Robot:
         for pc in self.remote_pcs.values():
             if pc.has_command(command_name):
                 rendered_command = pc.render_command(command_name, base_vars)
-                shell_command = self._get_shell_command(pc, rendered_command)
+                shell_command = self._render_shell_command(pc, rendered_command)
                 yield (pc.name, shell_command)
 
 
