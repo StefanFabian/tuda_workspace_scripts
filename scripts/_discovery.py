@@ -42,13 +42,13 @@ def main():
     discovery_servers = args.discovery_servers
 
     if discovery_servers[0] == "off":
-        remove_discovery_xml()
+        disable_discovery_xml()
         disable_super_client_daemon()
     else:
         create_discovery_xml(discovery_servers)
         enable_super_client_daemon()
 
-    print_warn("Warning: The settings are only applied to this terminal and new opened ones. Please resource other opened terminals.")
+    print_warn("Warning: The settings are applied to all terminals and new started ros nodes. Restart old nodes if necessary.")
         
 
 if __name__ == "__main__":
