@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create empty config on first usage
-if [[ ! -f "/tmp/hector/" ]]; then
+if [[ ! -d "/tmp/hector/" ]]; then
   mkdir /tmp/hector
 fi
 
