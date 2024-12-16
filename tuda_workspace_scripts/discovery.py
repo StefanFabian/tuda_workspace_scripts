@@ -73,6 +73,10 @@ def _create_dds_xml(discovery_servers: list[DiscoveryServer]) -> ET.Element:
 
 
 def _create_empty_discovery_xml() -> ET.Element:
+  # dedicated place for temporary hector variables
+  if not os.path.exists("/tmp/hector/"):
+    os.mkdir("/tmp/hector")
+
   root = ET.Element("dds")
   namespace = "http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles"
   profiles = ET.SubElement(root, "profiles", xmlns=namespace)
