@@ -33,7 +33,7 @@ def main():
         "discovery_servers",
         nargs="+",
         choices = choices,
-        help="Select robots for which discovery servers should be exported. Choose off to disable all discovery servers or all to export all known discovery servers. local will set a discovery server on the local host with default settings."
+        help="Select robots for which discovery servers should be exported. Choose off to disable all discovery servers or all to export all known discovery servers. local_server will set a discovery server on the local host with default settings."
     )
     first_arg.completer = DiscoveryServerChoicesCompleter()
     argcomplete.autocomplete(parser)
@@ -43,10 +43,10 @@ def main():
 
     if discovery_servers[0] == "off":
         disable_discovery_xml()
-        disable_super_client_daemon()
+        restart_super_client_daemon()
     else:
         create_discovery_xml(discovery_servers)
-        enable_super_client_daemon()
+        restart_super_client_daemon()
 
     print_warn("Warning: The settings are applied to all terminals and new started ros nodes. Restart old nodes if necessary.")
         

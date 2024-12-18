@@ -1,14 +1,19 @@
 from .workspace import get_workspace_root
 from robots import DiscoveryServer, load_robots
 from tuda_workspace_scripts import print_warn
+from ros2cli.node.daemon import is_daemon_running, spawn_daemon, shutdown_daemon
 import os
 import xml.etree.ElementTree as ET
 
 
+# dedicated place for temporary files
+tmp_directory = "/tmp/tuda_wss"
+discovery_xml_path = os.path.join("discovery_client.xml")
+super_client_xml_path = os.path.join("super_client.xml")
+
 def create_discovery_xml(discovery_server_names: list[str]):
-  # dedicated place for temporary hector variables
-  if not os.path.exists("/tmp/hector/"):
-    os.mkdir("/tmp/hector")
+  if not os.path.exists(tmp_directory):
+    os.mkdir(tmp_directory)
 
   discovery_servers = []
   robots = load_robots()
@@ -43,12 +48,12 @@ def create_discovery_xml(discovery_server_names: list[str]):
 
   # Create temporary file so it is removed on reboot
   tree = ET.ElementTree(root)
-  tree.write("/tmp/hector/discovery_client.xml", encoding="utf-8", xml_declaration=True)
+  tree.write(discovery_xml_path, encoding="utf-8", xml_declaration=True)
 
   # Create Super client xml
   protocol = root.findall(f".//discoveryProtocol")[0]
   protocol.text = "SUPER_CLIENT"
-  tree.write("/tmp/hector/super_client.xml", encoding="utf-8", xml_declaration=True)
+  tree.write(super_client_xml_path, encoding="utf-8", xml_declaration=True)
 
 def _create_dds_xml(discovery_servers: list[DiscoveryServer]) -> ET.Element:
   # There is options to parse more settings here
@@ -73,9 +78,8 @@ def _create_dds_xml(discovery_servers: list[DiscoveryServer]) -> ET.Element:
 
 
 def _create_empty_discovery_xml() -> ET.Element:
-  # dedicated place for temporary hector variables
-  if not os.path.exists("/tmp/hector/"):
-    os.mkdir("/tmp/hector")
+  if not os.path.exists(tmp_directory):
+    os.mkdir(tmp_directory)
 
   root = ET.Element("dds")
   namespace = "http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles"
@@ -100,24 +104,21 @@ def _create_client_xml(server: DiscoveryServer) -> ET.Element:
   return discovery_server
 
 
-def enable_super_client_daemon():
-  os.environ["FASTRTPS_DEFAULT_PROFILES_FILE"] = "/tmp/hector/super_client.xml"
-  os.system("ros2 daemon stop")
-  os.system("ros2 daemon start")
-
-
 def disable_discovery_xml():
   # Create empty file so it is automatically changed in all terminals
   root = _create_empty_discovery_xml()
   # pretty printing
   ET.indent(root, '    ')
   tree = ET.ElementTree(root)
-  tree.write("/tmp/hector/discovery_client.xml", encoding="utf-8", xml_declaration=True)
-  
+  # Writing empty xmls so default discovery settings are used
+  tree.write(discovery_xml_path, encoding="utf-8", xml_declaration=True)
+  tree.write(super_client_xml_path, encoding="utf-8", xml_declaration=True)
 
-def disable_super_client_daemon():
-  if "FASTRTPS_DEFAULT_PROFILES_FILE" in os.environ:
-    del os.environ["FASTRTPS_DEFAULT_PROFILES_FILE"]
-  os.environ["ROS_SUPER_CLIENT"]="FALSE"
-  os.system("ros2 daemon stop")
-  os.system("ros2 daemon start")
+
+def restart_super_client_daemon():
+  os.environ["FASTRTPS_DEFAULT_PROFILES_FILE"] = super_client_xml_path
+  if is_daemon_running([]):
+    if not shutdown_daemon([], timeout=10):
+      print_warn("daemon shutdown failed")
+  if not spawn_daemon([], timeout=10):
+    print_warn("daemon spawn failed")
