@@ -8,8 +8,8 @@ import xml.etree.ElementTree as ET
 
 # dedicated place for temporary files
 tmp_directory = "/tmp/tuda_wss"
-discovery_xml_path = os.path.join("discovery_client.xml")
-super_client_xml_path = os.path.join("super_client.xml")
+discovery_xml_path = os.path.join(tmp_directory, "discovery_client.xml")
+super_client_xml_path = os.path.join(tmp_directory, "super_client.xml")
 
 def create_discovery_xml(discovery_server_names: list[str]):
   if not os.path.exists(tmp_directory):
@@ -113,6 +113,8 @@ def disable_discovery_xml():
   # Writing empty xmls so default discovery settings are used
   tree.write(discovery_xml_path, encoding="utf-8", xml_declaration=True)
   tree.write(super_client_xml_path, encoding="utf-8", xml_declaration=True)
+  print(super_client_xml_path)
+  print(discovery_xml_path)
 
 
 def restart_super_client_daemon():
